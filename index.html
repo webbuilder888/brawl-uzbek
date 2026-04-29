@@ -3,235 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brawl Stars 2D Pro</title>
+    <title>Brawl Stars 2D - Neo</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Arial Black', sans-serif; touch-action: none; }
-        canvas { display: block; background: #3d7a3d; background-image: radial-gradient(#4caf50 1px, transparent 1px); background-size: 40px 40px; }
-        
+        :root {
+            --bg-color: #121212; --arena-color: #2e7d32; --player-color: #2196f3;
+            --enemy-color: #f44336; --bullet-color: #ffeb3b; --super-color: #ff9800;
+        }
+        body { margin: 0; overflow: hidden; background: var(--bg-color); font-family: 'Segoe UI', sans-serif; touch-action: none; }
+        canvas { display: block; background: var(--arena-color); filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+
         /* UI Elementlari */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .stat-bar { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; border: 2px solid #fff; min-width: 150px; }
-        .hp-container { width: 100%; height: 20px; background: #333; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        #hp-fill { width: 100%; height: 100%; background: #2ecc71; transition: width 0.3s; }
-        
-        .super-container { width: 100%; height: 10px; background: #333; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        #super-fill { width: 0%; height: 100%; background: #f1c40f; transition: width 0.3s; }
-        
-        #score-text { color: white; font-size: 18px; text-transform: uppercase; }
-        #game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 40px; border-radius: 20px; text-align: center; color: white; display: none; pointer-events: auto; }
-        
-        /* Tugmalar */
-        .controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 40px; box-sizing: border-box; }
-        .btn { width: 85px; height: 85px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: bold; pointer-events: auto; cursor: pointer; user-select: none; border: 5px solid rgba(255,255,255,0.5); }
-        #attack-btn { background: radial-gradient(#e74c3c, #c0392b); }
-        #super-btn { background: radial-gradient(#f1c40f, #f39c12); opacity: 0.3; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; }
+        .stat-bar { background: rgba(0,0,0,0.7); padding: 10px 15px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); min-width: 180px; }
+        .bar-container { width: 100%; height: 12px; background: #333; border-radius: 6px; margin-top: 5px; overflow: hidden; border: 1px solid #000; }
+        #hp-bar { width: 100%; height: 100%; background: #4caf50; transition: width 0.2s ease-out; }
+        #super-bar { width: 0%; height: 100%; background: var(--super-color); transition: width 0.2s ease-out; }
+        #score-text { color: white; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Virtual Joysticks */
+        .joystick-zone { position: absolute; bottom: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); pointer-events: auto; }
+        #move-joystick { left: 40px; }
+        #aim-joystick { right: 40px; }
+        .joystick-handle { position: absolute; width: 60px; height: 60px; background: rgba(255,255,255,0.5); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); transition: transform 0.1s; pointer-events: none; }
+
+        /* Game Over Oynasi */
+        #game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,20,20,0.95); padding: 50px; border-radius: 20px; text-align: center; color: white; border: 4px solid var(--player-color); display: none; pointer-events: auto; }
+        h1 { margin-top: 0; font-size: 32px; color: var(--enemy-color); }
+        button { background: var(--player-color); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 18px; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #1976d2; }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="ui-layer">
+    <div id="ui">
         <div class="stat-bar">
             <div id="score-text">KILLS: 0</div>
-            <div class="hp-container"><div id="hp-fill"></div></div>
-            <div class="super-container"><div id="super-fill"></div></div>
-        </div>
-
-        <div class="controls">
-            <div class="btn" id="move-area" style="background: rgba(255,255,255,0.1);">STICK</div>
-            <div style="display: flex; gap: 20px;">
-                <div class="btn" id="super-btn" onclick="activateSuper()">SUPER</div>
-                <div class="btn" id="attack-btn" onpointerdown="startFire()" onpointerup="stopFire()">FIRE</div>
-            </div>
+            <div class="bar-container"><div id="hp-bar"></div></div>
+            <div class="bar-container"><div id="super-bar"></div></div>
         </div>
     </div>
+
+    <div class="joystick-zone" id="move-joystick"><div class="joystick-handle" style="top: 50%; left: 50%;"></div></div>
+    <div class="joystick-zone" id="aim-joystick" style="border-color: rgba(255,152,0,0.5);"><div class="joystick-handle" style="top: 50%; left: 50%;"></div></div>
 
     <div id="game-over">
         <h1>GAME OVER</h1>
         <p id="final-score"></p>
-        <button onclick="location.reload()" style="padding: 10px 20px; cursor: pointer; font-weight: bold;">TRY AGAIN</button>
+        <button onclick="location.reload()">TRY AGAIN</button>
     </div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 
-    // O'yin o'zgaruvchilari
-    let score = 0;
-    let isGameOver = false;
-    let isFiring = false;
-    let superLevel = 0;
-    let isSuperActive = false;
+    // Ranglar
+    const colors = { bg: '#121212', arena: '#2e7d32', player: '#2196f3', enemy: '#f44336', bullet: '#ffeb3b', super: '#ff9800', pTrace: 'rgba(33,150,243,0.3)' };
 
-    let player = {
-        x: canvas.width/2,
-        y: canvas.height/2,
-        size: 25,
-        hp: 100,
-        maxHp: 100,
-        speed: 4
-    };
+    // O'yin O'zgaruvchilari
+    let score = 0, frames = 0, isGameOver = false, superActive = false, superLevel = 0, isFiring = false;
+    let player = { x: canvas.width/2, y: canvas.height/2, size: 28, hp: 100, maxHp: 100, speed: 4 };
+    let bullets = [], enemies = [], particles = [];
 
-    let bullets = [];
-    let enemies = [];
-    let particles = [];
+    // Joystick Boshqaruvi
+    const moveJoystickZone = document.getElementById('move-joystick');
+    const aimJoystickZone = document.getElementById('aim-joystick');
+    const moveHandle = moveJoystickZone.querySelector('.joystick-handle');
+    const aimHandle = aimJoystickZone.querySelector('.joystick-handle');
+    let moveDir = { x: 0, y: 0 }, aimDir = { x: 0, y: 0 };
 
-    // Boshqaruv (Sichqoncha yoki Touch)
-    let mouse = { x: player.x, y: player.y };
-    window.addEventListener('pointermove', (e) => {
-        if (!isGameOver) {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        }
-    });
+    function initJoystick(zone, handle, callback) {
+        zone.addEventListener('touchstart', start, { passive: false });
+        zone.addEventListener('touchmove', move, { passive: false });
+        zone.addEventListener('touchend', end);
+        zone.addEventListener('mousedown', start);
+        zone.addEventListener('mousemove', move);
+        zone.addEventListener('mouseup', end);
 
-    function startFire() { isFiring = true; }
-    function stopFire() { isFiring = false; }
-
-    function activateSuper() {
-        if (superLevel >= 100) {
-            isSuperActive = true;
-            superLevel = 0;
-            document.getElementById('super-fill').style.width = '0%';
-            document.getElementById('super-btn').style.opacity = '0.3';
-            setTimeout(() => { isSuperActive = false; }, 5000);
-        }
+        let active = false, startPos = { x: 0, y: 0 };
+        function start(e) { e.preventDefault(); active = true; const p = getPos(e); startPos = { x: p.x - zone.offsetLeft, y: p.y - zone.offsetTop }; update(p); }
+        function move(e) { if(!active) return; e.preventDefault(); update(getPos(e)); }
+        function end() { active = false; handle.style.transform = `translate(-50%, -50%)`; callback({ x: 0, y: 0 }); if(zone.id === 'aim-joystick') isFiring = false; }
+        function getPos(e) { return { x: e.touches ? e.touches[0].clientX : e.clientX, y: e.touches ? e.touches[0].clientY : e.clientY }; }
+        function update(p) { let dx = (p.x - zone.offsetLeft) - 60, dy = (p.y - zone.offsetTop) - 60; let dist = Math.sqrt(dx*dx + dy*dy); let angle = Math.atan2(dy, dx); let maxDist = 40; if(dist > maxDist) { dx = Math.cos(angle) * maxDist; dy = Math.sin(angle) * maxDist; dist = maxDist; } handle.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)`; callback({ x: dx/maxDist, y: dy/maxDist }); if(zone.id === 'aim-joystick' && dist > maxDist/2) isFiring = true; }
     }
 
-    // Effketlar (Portlash)
-    function createExplosion(x, y, color) {
-        for(let i=0; i<8; i++) {
-            particles.push({
-                x: x, y: y,
-                vx: (Math.random()-0.5)*10,
-                vy: (Math.random()-0.5)*10,
-                life: 20,
-                color: color
-            });
-        }
-    }
+    initJoystick(moveJoystickZone, moveHandle, (dir) => moveDir = dir);
+    initJoystick(aimJoystickZone, aimHandle, (dir) => aimDir = dir);
 
-    function spawnEnemy() {
-        if (isGameOver) return;
-        let side = Math.floor(Math.random()*4);
-        let x, y;
-        if(side==0) { x=Math.random()*canvas.width; y=-50; }
-        else if(side==1) { x=canvas.width+50; y=Math.random()*canvas.height; }
-        else if(side==2) { x=Math.random()*canvas.width; y=canvas.height+50; }
-        else { x=-50; y=Math.random()*canvas.height; }
+    function createExplosion(x, y, color, count=10) { for(let i=0; i<count; i++) particles.push({ x: x, y: y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 30, size: 3+Math.random()*3, color: color }); }
+    function spawnEnemy() { if(isGameOver) return; let x, y, side = Math.floor(Math.random()*4); if(side==0){x=Math.random()*canvas.width;y=-50;}else if(side==1){x=canvas.width+50;y=Math.random()*canvas.height;}else if(side==2){x=Math.random()*canvas.width;y=canvas.height+50;}else{x=-50;y=Math.random()*canvas.height;} enemies.push({ x: x, y: y, hp: 3, speed: 1.5+(score/15), size: 22 }); }
+
+    function updateGame() {
+        if(isGameOver) return; frames++; ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        enemies.push({ x: x, y: y, hp: 3, speed: 1.5 + (score/10), size: 20 });
-    }
+        // Arena Fon
+        ctx.fillStyle = colors.arena; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(0,0,0,0.1)'; for(let i=0; i<canvas.width; i+=40) for(let j=0; j<canvas.height; j+=40) if((i+j)/40 % 2 === 0) ctx.fillRect(i, j, 40, 40);
 
-    function update() {
-        if (isGameOver) return;
+        // O'yinchini Harakati
+        player.x += moveDir.x * player.speed; player.y += moveDir.y * player.speed;
+        player.x = Math.max(player.size, Math.min(canvas.width-player.size, player.x)); player.y = Math.max(player.size, Math.min(canvas.height-player.size, player.y));
+        
+        // O'yinchini Chizish
+        ctx.save(); ctx.shadowBlur = 20; ctx.shadowColor = superActive ? colors.super : colors.player; ctx.fillStyle = superActive ? colors.super : colors.player; ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
+        ctx.fillStyle = superActive ? 'rgba(255,152,0,0.3)' : colors.pTrace; ctx.beginPath(); ctx.arc(player.x, player.y, player.size+8, 0, Math.PI*2); ctx.fill(); ctx.restore();
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // O'yinchini harakati (Sichqoncha tomon yurish)
-        let dx = mouse.x - player.x;
-        let dy = mouse.y - player.y;
-        let dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist > 5) {
-            player.x += (dx/dist) * player.speed;
-            player.y += (dy/dist) * player.speed;
-        }
-
-        // O'yinchini chizish
-        ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = isSuperActive ? "#f1c40f" : "#3b82f6";
-        ctx.fillStyle = isSuperActive ? "#f1c40f" : "#3b82f6";
-        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
-        ctx.restore();
-
-        // O'q otish
-        if (isFiring && frames % 10 == 0) {
-            let angle = Math.atan2(dy, dx);
-            let bulletCount = isSuperActive ? 5 : 1;
-            for(let i=0; i<bulletCount; i++) {
-                let spread = isSuperActive ? (Math.random()-0.5) : 0;
-                bullets.push({
-                    x: player.x, y: player.y,
-                    vx: Math.cos(angle + spread) * 10,
-                    vy: Math.sin(angle + spread) * 10,
-                    power: isSuperActive ? 2 : 1
-                });
+        // O'q Otish (Aim Joystick yordamida)
+        if(isFiring && frames % (superActive ? 6 : 12) === 0) {
+            let count = superActive ? 3 : 1;
+            for(let i=0; i<count; i++) {
+                let spread = superActive ? (Math.random()-0.5)*0.2 : 0;
+                let angle = Math.atan2(aimDir.y, aimDir.x) + spread;
+                bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, life: 100, super: superActive });
             }
         }
 
-        // O'qlar harakati
+        // O'qlarni Chizish va Effektlar
         bullets.forEach((b, index) => {
-            b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = "#fff";
-            ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
-            if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(index, 1);
+            b.x += b.vx; b.y += b.vy; b.life--;
+            ctx.fillStyle = b.super ? colors.super : colors.bullet;
+            ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle; ctx.beginPath(); ctx.arc(b.x, b.y, b.super?7:5, 0, Math.PI*2); ctx.fill();
+            if(b.life<=0 || b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(index, 1);
         });
 
-        // Dushmanlar harakati
+        // Dushmanlar
         enemies.forEach((en, eIdx) => {
-            let edx = player.x - en.x;
-            let edy = player.y - en.y;
-            let edist = Math.sqrt(edx*edx + edy*edy);
-            en.x += (edx/edist) * en.speed;
-            en.y += (edy/edist) * en.speed;
-
-            // Dushman ko'rinishi
-            ctx.fillStyle = "#e74c3c";
-            ctx.beginPath(); ctx.arc(en.x, en.y, en.size, 0, Math.PI*2); ctx.fill();
-
-            // To'qnashuv: Dushman o'yinchiga tegsa
-            if(edist < player.size + en.size) {
-                player.hp -= 0.5;
-                document.getElementById('hp-fill').style.width = player.hp + "%";
-                if(player.hp <= 0) endGame();
-            }
-
-            // O'q dushmanga tegsa
+            let dx = player.x - en.x, dy = player.y - en.y, dist = Math.sqrt(dx*dx + dy*dy); en.x += (dx/dist)*en.speed; en.y += (dy/dist)*en.speed;
+            ctx.fillStyle = colors.enemy; ctx.beginPath(); ctx.arc(en.x, en.y, en.size, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
+            if(dist < player.size + en.size) { player.hp -= 0.5; document.getElementById('hp-bar').style.width = player.hp + "%"; if(player.hp <= 0) endGame(); }
             bullets.forEach((b, bIdx) => {
                 let hitDist = Math.sqrt((en.x - b.x)**2 + (en.y - b.y)**2);
-                if(hitDist < en.size) {
-                    en.hp -= b.power;
-                    bullets.splice(bIdx, 1);
-                    if(en.hp <= 0) {
-                        createExplosion(en.x, en.y, "#e74c3c");
-                        enemies.splice(eIdx, 1);
-                        score++;
-                        superLevel = Math.min(100, superLevel + 5);
-                        document.getElementById('score-text').innerText = "KILLS: " + score;
-                        document.getElementById('super-fill').style.width = superLevel + "%";
-                        if(superLevel >= 100) document.getElementById('super-btn').style.opacity = '1';
-                    }
-                }
+                if(hitDist < en.size + (b.super?7:5)) { en.hp -= b.super?2:1; bullets.splice(bIdx, 1); if(en.hp<=0) { score++; superLevel = Math.min(100, superLevel+6); enemies.splice(eIdx, 1); createExplosion(en.x, en.y, colors.enemy); document.getElementById('score-text').innerText = "KILLS: " + score; document.getElementById('super-bar').style.width = superLevel + "%"; } }
             });
         });
 
-        // Zarralar (Particles)
-        particles.forEach((p, index) => {
-            p.x += p.vx; p.y += p.vy; p.life--;
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life/20;
-            ctx.fillRect(p.x, p.y, 4, 4);
-            if(p.life <= 0) particles.splice(index, 1);
-        });
-        ctx.globalAlpha = 1;
+        // Zarralar
+        particles.forEach((p, index) => { p.x += p.vx; p.y += p.vy; p.life--; p.size *= 0.95; ctx.fillStyle = p.color; ctx.globalAlpha = p.life/30; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); if(p.life<=0 || p.size < 0.5) particles.splice(index, 1); }); ctx.globalAlpha = 1;
 
-        frames++;
-        requestAnimationFrame(update);
+        // Super Active Tekshirish
+        if(!superActive && superLevel >= 100) { aimJoystickZone.style.backgroundColor = 'rgba(255,152,0,0.4)'; aimJoystickZone.addEventListener('pointerdown', activateSuper); }
+        else if(superActive && superLevel <= 0) { superActive = false; aimJoystickZone.style.backgroundColor = 'rgba(255,255,255,0.15)'; aimJoystickZone.removeEventListener('pointerdown', activateSuper); }
+        else if(superActive) { superLevel -= 0.5; document.getElementById('super-bar').style.width = superLevel + "%"; }
+
+        function activateSuper() { if(!superActive && superLevel >= 100) superActive = true; }
+        requestAnimationFrame(updateGame);
     }
 
-    function endGame() {
-        isGameOver = true;
-        document.getElementById('game-over').style.display = 'block';
-        document.getElementById('final-score').innerText = "You defeated " + score + " brawlers!";
-    }
-
-    let frames = 0;
-    setInterval(spawnEnemy, 1500);
-    update();
+    function endGame() { isGameOver = true; document.getElementById('game-over').style.display = 'block'; document.getElementById('final-score').innerText = "You defeated " + score + " neo-brawlers!"; moveJoystickZone.style.display = aimJoystickZone.style.display = 'none'; }
+    setInterval(spawnEnemy, 2000); updateGame();
 </script>
 </body>
 </html>
