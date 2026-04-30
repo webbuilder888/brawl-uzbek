@@ -2,99 +2,56 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brawl Stars Pro Clone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <title>Brawl Ultra: Crystal Hunter</title>
     <style>
-        :root {
-            --gem-color: #00ffcc;
-            --coin-color: #ffd700;
-            --hp-color: #2ecc71;
-            --super-color: #f1c40f;
-        }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; }
-        canvas { display: none; background: #3d7a3d; }
+        :root { --p-color: #00d2ff; --e-color: #ff0055; --s-color: #ffaa00; --gold: #ffd700; --crystal: #ae00ff; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Arial Black', sans-serif; touch-action: none; }
+        canvas { display: none; background: #1e3d1a; }
+        
+        /* LOBBY & UI */
+        #lobby, #maintenance { position: absolute; width: 100%; height: 100%; background: linear-gradient(45deg, #1a2a6c, #b21f1f); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
+        .stat-header { position: absolute; top: 10px; right: 20px; display: flex; gap: 15px; font-size: 18px; }
+        .currency { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid #fff; }
+        
+        .character-preview { width: 150px; height: 200px; background: var(--p-color); border-radius: 50px 50px 10px 10px; box-shadow: 0 0 30px var(--p-color); margin: 20px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
+        .btn { padding: 15px 60px; font-size: 24px; border-radius: 15px; border: 4px solid #fff; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
+        .play-btn { background: #ffcc00; color: #000; box-shadow: 0 8px 0 #cc9900; }
+        .box-btn { background: #00d2ff; color: #fff; margin-top: 20px; font-size: 18px; box-shadow: 0 5px 0 #0099cc; }
+        .btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
 
-        /* --- LOBBY DESIGN --- */
-        #lobby {
-            position: absolute; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://wallpaperaccess.com/full/1385310.jpg');
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
-        }
-
-        /* Top Bar (Gems & Coins) */
-        .top-bar {
-            position: absolute; top: 20px; right: 20px; display: flex; gap: 15px;
-        }
-        .currency {
-            background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 20px;
-            color: white; border: 2px solid #555; display: flex; align-items: center; gap: 8px;
-        }
-
-        /* Character & Box */
-        .character-area { position: relative; display: flex; flex-direction: column; align-items: center; }
-        .hero { width: 120px; height: 200px; background: #3498db; border-radius: 40px; box-shadow: 0 0 30px #3498db; animation: float 2s infinite ease-in-out; }
-        .box { 
-            width: 80px; height: 60px; background: #e74c3c; border: 4px solid #fff; 
-            margin-top: 20px; border-radius: 10px; cursor: pointer;
-            box-shadow: 0 10px 0 #c0392b; transition: 0.1s;
-        }
-        .box:active { transform: translateY(5px); box-shadow: 0 5px 0 #c0392b; }
-
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
-        .btn-play {
-            margin-top: 40px; padding: 15px 60px; font-size: 28px;
-            background: linear-gradient(#f1c40f, #f39c12); color: white;
-            border: 4px solid #fff; border-radius: 15px; cursor: pointer;
-            text-shadow: 2px 2px #000; box-shadow: 0 8px 0 #d35400;
-        }
-
-        /* --- IN-GAME UI --- */
-        #game-ui {
-            position: absolute; top: 20px; left: 20px; display: none; color: white;
-        }
-        .joy-container {
-            position: absolute; bottom: 40px; width: 100%; display: none;
-            justify-content: space-around; pointer-events: none;
-        }
-        .joystick {
-            width: 120px; height: 120px; background: rgba(255,255,255,0.2);
-            border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); pointer-events: auto;
-        }
+        /* GAME UI */
+        #game-ui { position: absolute; top: 10px; left: 10px; display: none; z-index: 50; }
+        .joy-zone { position: absolute; bottom: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); }
+        .handle { position: absolute; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
     <!-- LOBBY -->
     <div id="lobby">
-        <div class="top-bar">
-            <div class="currency" style="border-color: var(--gem-color)">💎 <span id="gem-count">0</span></div>
-            <div class="currency" style="border-color: var(--coin-color)">🟡 <span id="coin-count">0</span></div>
+        <div class="stat-header">
+            <div class="currency" style="color: var(--gold);">🪙 <span id="lobby-coins">0</span></div>
+            <div class="currency" style="color: var(--crystal);">💎 <span id="lobby-gems">0</span></div>
         </div>
-
-        <div class="character-area">
-            <div class="hero"></div>
-            <div class="box" onclick="alert('Box Opening... Get Coins!')"></div>
-            <p style="color: white;">Brawl Box</p>
-        </div>
-
-        <button class="btn-play" onclick="initGame()">BRAWL!</button>
+        <h1 style="font-size: 50px; text-shadow: 4px 4px #000;">BRAWL ULTRA</h1>
+        <div class="character-preview"></div>
+        <button class="play-btn btn" onclick="startGame()">BRAWL!</button>
+        <button class="box-btn btn" onclick="openBox()">OPEN BOX (100 🪙)</button>
     </div>
 
     <!-- GAME UI -->
     <div id="game-ui">
-        <div class="currency">💎 <span id="game-gems">0</span></div>
-        <div style="width: 200px; height: 15px; background: #333; margin-top: 10px; border-radius: 10px; overflow: hidden;">
-            <div id="hp-bar" style="width: 100%; height: 100%; background: var(--hp-color);"></div>
+        <div class="currency" style="margin-bottom: 5px;">KILLS: <span id="kills">0</span></div>
+        <div id="hp-container" style="width: 200px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid #fff;">
+            <div id="hp-bar" style="width: 100%; height: 100%; background: #00ff88;"></div>
         </div>
     </div>
 
-    <!-- JOYSTICKS -->
-    <div class="joy-container" id="controls">
-        <div class="joystick" id="move-joy"></div>
-        <div class="joystick" id="attack-joy" style="border-color: #e74c3c; background: rgba(231, 76, 60, 0.2);"></div>
-    </div>
+    <div class="joy-zone" id="move-joy" style="left: 40px; display: none;"><div class="handle"></div></div>
+    <div class="joy-zone" id="aim-joy" style="right: 40px; display: none;"><div class="handle"></div></div>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -102,107 +59,129 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    let state = 'LOBBY';
-    let player = { x: 0, y: 0, hp: 100, gems: 0, coins: 0 };
-    let bullets = [], enemies = [], items = [];
-    let joyMove = { x: 0, y: 0 }, joyAtk = { x: 0, y: 0 };
+    // Global Stats
+    let coins = 0, gems = 0, kills = 0, frames = 0, isGameRunning = false;
+    const isMaintenance = false; // Razrabotchik rejimi
 
-    function initGame() {
+    let player = { x: 0, y: 0, size: 25, hp: 100, speed: 4 };
+    let enemies = [], bullets = [], drops = [], particles = [];
+
+    // --- JOYSTICK LOGIC (FIXED) ---
+    const joys = { move: { x: 0, y: 0, id: null }, aim: { x: 0, y: 0, id: null, active: false } };
+
+    function setupJoy(id, type) {
+        const zone = document.getElementById(id);
+        const handle = zone.querySelector('.handle');
+        const center = { x: zone.offsetLeft + 60, y: zone.offsetTop + 60 };
+
+        const handleInput = (e) => {
+            e.preventDefault();
+            const t = e.targetTouches ? Array.from(e.targetTouches).find(tt => tt.target === zone || zone.contains(tt.target)) : e;
+            if(!t) return;
+
+            let dx = t.clientX - (zone.offsetLeft + 60);
+            let dy = t.clientY - (zone.offsetTop + 60);
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+            const angle = Math.atan2(dy, dx);
+
+            joys[type].x = (Math.cos(angle) * dist) / 50;
+            joys[type].y = (Math.sin(angle) * dist) / 50;
+            handle.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+            if(type === 'aim' && dist > 20) joys.aim.active = true;
+        };
+
+        const stop = () => { joys[type].x = 0; joys[type].y = 0; joys.aim.active = false; handle.style.transform = `translate(-50%, -50%)`; };
+        zone.addEventListener('touchstart', handleInput); zone.addEventListener('touchmove', handleInput);
+        zone.addEventListener('touchend', stop);
+    }
+
+    // --- GAME FUNCTIONS ---
+    function startGame() {
+        if(isMaintenance) return alert("🛠 Texnik ishlar ketmoqda!");
         document.getElementById('lobby').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        document.getElementById('controls').style.display = 'flex';
+        document.querySelectorAll('.joy-zone, #game-ui').forEach(el => el.style.display = 'block');
         canvas.style.display = 'block';
-        
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-        
-        state = 'PLAYING';
-        gameLoop();
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        player.x = canvas.width/2; player.y = canvas.height/2;
+        setupJoy('move-joy', 'move'); setupJoy('aim-joy', 'aim');
+        isGameRunning = true; update();
     }
 
-    // --- BOSHQUV VA ATTACK ---
-    window.addEventListener('touchstart', (e) => {
-        let touch = e.touches[0];
-        if(touch.clientX > canvas.width/2) {
-            shoot(touch.clientX, touch.clientY); // O'ng taraf bosilganda hujum
+    function openBox() {
+        if(coins >= 100) {
+            coins -= 100;
+            const win = Math.floor(Math.random() * 10) + 1;
+            gems += win;
+            alert(`📦 BOX OCHILDI! Siz ${win} ta kristall 💎 yutdingiz!`);
+            updateLobbyUI();
+        } else alert("Mablag' yetarli emas! 🪙");
+    }
+
+    function updateLobbyUI() {
+        document.getElementById('lobby-coins').innerText = coins;
+        document.getElementById('lobby-gems').innerText = gems;
+    }
+
+    function createDrop(x, y) {
+        const type = Math.random() > 0.3 ? 'coin' : 'gem';
+        drops.push({ x, y, type, size: 10 });
+    }
+
+    function update() {
+        if(!isGameRunning) return;
+        frames++; ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Player Movement
+        player.x += joys.move.x * player.speed; player.y += joys.move.y * player.speed;
+
+        // Draw Player
+        ctx.fillStyle = '#00d2ff'; ctx.shadowBlur = 15; ctx.shadowColor = '#00d2ff';
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Firing
+        if(joys.aim.active && frames % 12 === 0) {
+            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x * 12, vy: joys.aim.y * 12 });
         }
-    });
 
-    function shoot(tx, ty) {
-        let angle = Math.atan2(ty - player.y, tx - player.x);
-        bullets.push({ 
-            x: player.x, y: player.y, 
-            vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12 
-        });
-    }
-
-    function spawnEnemy() {
-        if(enemies.length < 5) {
-            enemies.push({ x: Math.random()*canvas.width, y: -50, hp: 3 });
-        }
-    }
-
-    function gameLoop() {
-        if(state !== 'PLAYING') return;
-
-        // Background (Jang maydoni)
-        ctx.fillStyle = '#4caf50'; // Yashil o'tloq
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Panjara chizish
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-        for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
-
-        // Player (Hero)
-        ctx.fillStyle = '#3498db';
-        ctx.beginPath(); ctx.arc(player.x, player.y, 25, 0, Math.PI*2); ctx.fill();
-
-        // O'qlar (Attack)
+        // Bullets
         bullets.forEach((b, i) => {
             b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = 'yellow';
-            ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
-            if(b.y < 0 || b.y > canvas.height) bullets.splice(i, 1);
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
+            if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(i, 1);
         });
 
-        // Dushmanlar va Kristalllar
-        enemies.forEach((en, ei) => {
-            let dx = player.x - en.x, dy = player.y - en.y;
-            let dist = Math.sqrt(dx*dx+dy*dy);
-            en.x += dx/dist * 2; en.y += dy/dist * 2;
+        // Enemies
+        if(frames % 80 === 0) enemies.push({ x: Math.random()*canvas.width, y: -20, hp: 2 });
+        enemies.forEach((e, i) => {
+            let dx = player.x - e.x, dy = player.y - e.y, d = Math.sqrt(dx*dx+dy*dy);
+            e.x += (dx/d)*2; e.y += (dy/d)*2;
+            ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.arc(e.x, e.y, 20, 0, Math.PI*2); ctx.fill();
 
-            ctx.fillStyle = '#e74c3c';
-            ctx.beginPath(); ctx.arc(en.x, en.y, 20, 0, Math.PI*2); ctx.fill();
-
-            // O'q tegishi
             bullets.forEach((b, bi) => {
-                let d = Math.sqrt((en.x-b.x)**2 + (en.y-b.y)**2);
-                if(d < 25) {
-                    enemies.splice(ei, 1);
-                    bullets.splice(bi, 1);
-                    // Kristall tushishi (Gem drop)
-                    items.push({ x: en.x, y: en.y, type: 'GEM' });
+                if(Math.sqrt((e.x-b.x)**2 + (e.y-b.y)**2) < 25) {
+                    e.hp--; bullets.splice(bi, 1);
+                    if(e.hp <= 0) {
+                        kills++; createDrop(e.x, e.y); enemies.splice(i, 1);
+                        document.getElementById('kills').innerText = kills;
+                    }
                 }
             });
+            if(d < 40) { player.hp -= 0.5; document.getElementById('hp-bar').style.width = player.hp + "%"; }
         });
 
-        // Kristallarni yig'ish
-        items.forEach((it, ii) => {
-            ctx.fillStyle = '#00ffcc';
-            ctx.fillRect(it.x, it.y, 15, 15);
-            let d = Math.sqrt((player.x-it.x)**2 + (player.y-it.y)**2);
-            if(d < 30) {
-                items.splice(ii, 1);
-                player.gems++;
-                document.getElementById('game-gems').innerText = player.gems;
-                document.getElementById('gem-count').innerText = player.gems;
+        // Drops (Coins & Gems)
+        drops.forEach((d, i) => {
+            ctx.fillStyle = d.type === 'coin' ? '#ffd700' : '#ae00ff';
+            ctx.beginPath(); ctx.arc(d.x, d.y, 8, 0, Math.PI*2); ctx.fill();
+            if(Math.sqrt((player.x-d.x)**2 + (player.y-d.y)**2) < 40) {
+                if(d.type === 'coin') coins += 10; else gems += 1;
+                drops.splice(i, 1); updateLobbyUI();
             }
         });
 
-        if(Math.random() < 0.02) spawnEnemy();
-        requestAnimationFrame(gameLoop);
+        if(player.hp <= 0) location.reload();
+        requestAnimationFrame(update);
     }
 </script>
 </body>
