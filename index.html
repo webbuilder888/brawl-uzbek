@@ -3,41 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>Brawl Ultra Fix</title>
+    <title>Brawl Ultra: Shelly Edition</title>
     <style>
-        :root { --p-color: #00d2ff; --exp: #00ff88; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; -webkit-user-select: none; }
-        canvas { display: none; }
+        :root { --gold: #ffd700; --crystal: #ae00ff; --p-color: #9b59b6; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; -webkit-user-select: none; }
+        canvas { display: none; background: #224422; }
 
-        /* UI */
+        /* LOBBY */
         #lobby { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #1a2a6c, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
-        .play-btn { padding: 20px 80px; font-size: 30px; background: #ffcc00; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; }
+        .stats-top { position: absolute; top: 20px; display: flex; gap: 20px; }
+        .currency { background: rgba(0,0,0,0.7); padding: 10px 25px; border-radius: 30px; border: 2px solid #fff; font-size: 20px; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
         
-        #game-ui { position: absolute; top: 10px; left: 10px; display: none; z-index: 50; width: 200px; color: white; pointer-events: none; }
-        .bar-bg { background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid #fff; overflow: hidden; }
-        .bar-fill { height: 100%; width: 100%; transition: 0.1s; }
+        /* SHELLY LOOK-ALIKE */
+        .shelly-preview { width: 120px; height: 160px; background: #9b59b6; border-radius: 40px 40px 10px 10px; position: relative; margin-bottom: 20px; box-shadow: 0 0 50px #9b59b6; animation: idle 2s infinite ease-in-out; }
+        .shelly-preview::before { content: ''; position: absolute; top: -10px; width: 130px; height: 50px; background: #4a235a; border-radius: 50px 50px 0 0; left: -5px; } /* Sochlari */
+        
+        @keyframes idle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05) translateY(-10px); } }
+        
+        .btn-group { display: flex; gap: 20px; margin-top: 10px; }
+        .btn { padding: 15px 50px; font-size: 25px; border-radius: 40px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.1s; }
+        .play-btn { background: #ffcc00; color: #000; box-shadow: 0 8px #cc9900; }
+        .box-btn { background: #3498db; color: #fff; box-shadow: 0 8px #2980b9; font-size: 18px; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px gray; }
 
         /* JOYSTICKS */
-        .joy-base { position: absolute; bottom: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: none; z-index: 60; touch-action: none; }
-        .joy-handle { position: absolute; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; border: 2px solid #fff; }
+        .joy-zone { position: absolute; bottom: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); display: none; z-index: 60; }
+        .handle { position: absolute; width: 60px; height: 60px; background: rgba(255,255,255,0.5); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 2px solid #fff; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="font-size: 45px; margin-bottom: 20px;">BRAWL ULTRA</h1>
-        <div style="width:100px; height:130px; background:var(--p-color); border-radius:20px; margin-bottom:30px; box-shadow: 0 0 30px var(--p-color);"></div>
-        <button class="play-btn" onclick="startGame()">START</button>
+        <div class="stats-top">
+            <div class="currency" style="color: var(--gold);">🪙 <span id="l-coins">0</span></div>
+            <div class="currency" style="color: var(--crystal);">💎 <span id="l-gems">0</span></div>
+        </div>
+        <h1 style="font-size: 40px; text-shadow: 3px 3px #000;">BRAWL ULTRA</h1>
+        <div class="shelly-preview"></div>
+        <div class="btn-group">
+            <button class="play-btn btn" onclick="startGame()">BATTLE</button>
+            <button class="box-btn btn" onclick="openBox()">BOX (100 🪙)</button>
+        </div>
     </div>
 
-    <div id="game-ui">
-        <div>LVL: <span id="lvl">1</span> | 🪙: <span id="coins">0</span></div>
-        <div class="bar-bg"><div id="hp-bar" class="bar-fill" style="background: #ff4444;"></div></div>
-        <div class="bar-bg"><div id="exp-bar" class="bar-fill" style="background: var(--exp); width:0%;"></div></div>
-    </div>
-
-    <div id="move-joy" class="joy-base" style="left: 50px;"><div class="joy-handle"></div></div>
-    <div id="aim-joy" class="joy-base" style="right: 50px;"><div class="joy-handle"></div></div>
+    <div id="move-joy" class="joy-zone" style="left: 60px;"><div class="handle"></div></div>
+    <div id="aim-joy" class="joy-zone" style="right: 60px;"><div class="handle"></div></div>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -45,147 +55,114 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    let coins = 0, exp = 0, lvl = 1, expNext = 100;
+    // MA'LUMOTLARNI SAQLASH
+    let coins = localStorage.getItem('coins') ? parseInt(localStorage.getItem('coins')) : 0;
+    let gems = localStorage.getItem('gems') ? parseInt(localStorage.getItem('gems')) : 0;
     let isRunning = false, frames = 0;
 
-    let player = { x: 0, y: 0, size: 25, hp: 100, maxHp: 100, speed: 5, dmg: 1 };
+    // LOBBY YANGILASH
+    function updateLobby() {
+        document.getElementById('l-coins').innerText = coins;
+        document.getElementById('l-gems').innerText = gems;
+        localStorage.setItem('coins', coins);
+        localStorage.setItem('gems', gems);
+    }
+    updateLobby();
+
+    // QUTI OCHISH
+    function openBox() {
+        if (coins >= 100) {
+            coins -= 100;
+            let win = Math.floor(Math.random() * 15) + 5;
+            gems += win;
+            alert("BOX OCHILDI! 💎 " + win + " ta kristall yutdingiz!");
+            updateLobby();
+        } else {
+            alert("Tangalar yetarli emas!");
+        }
+    }
+
+    let player = { x: 0, y: 0, hp: 100, speed: 6 };
     let enemies = [], bullets = [], drops = [];
+    const joys = { move: { x: 0, y: 0, active: false }, aim: { x: 0, y: 0, active: false } };
 
-    const joys = { 
-        move: { x: 0, y: 0, active: false }, 
-        aim: { x: 0, y: 0, active: false } 
-    };
-
-    function setupJoystick(id, type) {
+    function setupJoy(id, type) {
         const el = document.getElementById(id);
-        const handle = el.querySelector('.joy-handle');
+        const handle = el.querySelector('.handle');
         const rect = el.getBoundingClientRect();
-        const centerX = rect.left + 60;
-        const centerY = rect.top + 60;
+        const cx = rect.left + 65, cy = rect.top + 65;
 
         const move = (e) => {
             e.preventDefault();
             const t = e.touches[0];
-            let dx = t.clientX - centerX;
-            let dy = t.clientY - centerY;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
-            const angle = Math.atan2(dy, dx);
-
-            const rx = Math.cos(angle) * dist;
-            const ry = Math.sin(angle) * dist;
-
-            handle.style.transform = `translate(calc(-50% + ${rx}px), calc(-50% + ${ry}px))`;
-            joys[type].x = rx / 50;
-            joys[type].y = ry / 50;
+            let dx = t.clientX - cx, dy = t.clientY - cy;
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 55);
+            const ang = Math.atan2(dy, dx);
+            joys[type].x = (Math.cos(ang) * dist) / 55;
+            joys[type].y = (Math.sin(ang) * dist) / 55;
+            handle.style.transform = `translate(calc(-50% + ${Math.cos(ang)*dist}px), calc(-50% + ${Math.sin(ang)*dist}px))`;
             if (dist > 10) joys[type].active = true;
         };
-
-        const stop = () => {
-            joys[type].active = false;
-            joys[type].x = 0; joys[type].y = 0;
-            handle.style.transform = `translate(-50%, -50%)`;
-        };
-
-        el.addEventListener('touchstart', move);
-        el.addEventListener('touchmove', move);
-        el.addEventListener('touchend', stop);
+        const stop = () => { joys[type].active = false; joys[type].x = 0; joys[type].y = 0; handle.style.transform = `translate(-50%, -50%)`; };
+        el.addEventListener('touchstart', move); el.addEventListener('touchmove', move); el.addEventListener('touchend', stop);
     }
 
     function startGame() {
         document.getElementById('lobby').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        document.querySelectorAll('.joy-base').forEach(j => j.style.display = 'block');
+        document.querySelectorAll('.joy-zone').forEach(j => j.style.display = 'block');
         canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-
-        setupJoystick('move-joy', 'move');
-        setupJoystick('aim-joy', 'aim');
-
-        isRunning = true;
-        requestAnimationFrame(update);
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        player.x = canvas.width/2; player.y = canvas.height/2;
+        setupJoy('move-joy', 'move'); setupJoy('aim-joy', 'aim');
+        isRunning = true; loop();
     }
 
-    function update() {
-        if (!isRunning) return; // O'yin to'xtasa, hisoblashni bas qiladi
+    function loop() {
+        if (!isRunning) return;
         frames++;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#1a2b1a'; // Arena
-        ctx.fillRect(0,0, canvas.width, canvas.height);
+        ctx.fillStyle = '#2d5a27'; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-        // Player movement
-        if (joys.move.active) {
-            player.x += joys.move.x * player.speed;
-            player.y += joys.move.y * player.speed;
-        }
-
-        // Draw Player
-        ctx.fillStyle = '#00d2ff';
-        ctx.beginPath();
-        ctx.roundRect(player.x-20, player.y-25, 40, 50, 10);
-        ctx.fill();
+        // Player (Shelly Style)
+        player.x += joys.move.x * player.speed;
+        player.y += joys.move.y * player.speed;
+        ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.roundRect(player.x-20, player.y-25, 40, 50, 10); ctx.fill();
+        ctx.fillStyle = '#4a235a'; ctx.fillRect(player.x-22, player.y-28, 44, 15); // Shelly sochi
 
         // Shooting
-        if (joys.aim.active && frames % 12 === 0) {
-            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x*12, vy: joys.aim.y*12 });
+        if (joys.aim.active && frames % 10 === 0) {
+            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x*14, vy: joys.aim.y*14 });
         }
 
-        // Bullets logic
         bullets.forEach((b, i) => {
             b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = 'yellow';
-            ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 7, 0, Math.PI*2); ctx.fill();
             if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(i,1);
         });
 
-        // Enemies logic
-        if (frames % 80 === 0) {
-            enemies.push({ x: Math.random()*canvas.width, y: -20, hp: 2 + lvl });
-        }
-
+        // Enemies
+        if (frames % 70 === 0) enemies.push({ x: Math.random()*canvas.width, y: -30, hp: 3 });
         enemies.forEach((e, i) => {
-            let dx = player.x - e.x, dy = player.y - e.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            e.x += (dx/dist) * 2; e.y += (dy/dist) * 2;
+            let dx = player.x-e.x, dy = player.y-e.y, dist = Math.sqrt(dx*dx+dy*dy);
+            e.x += (dx/dist)*2.5; e.y += (dy/dist)*2.5;
+            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.roundRect(e.x-20, e.y-20, 40, 40, 5); ctx.fill();
 
-            ctx.fillStyle = 'red';
-            ctx.beginPath(); ctx.roundRect(e.x-20, e.y-20, 40, 40, 5); ctx.fill();
-
-            // Hit enemy
             bullets.forEach((b, bi) => {
                 if (Math.hypot(b.x-e.x, b.y-e.y) < 30) {
-                    e.hp -= player.dmg;
-                    bullets.splice(bi, 1);
+                    e.hp--; bullets.splice(bi,1);
                     if (e.hp <= 0) {
-                        enemies.splice(i, 1);
-                        exp += 34; coins += 5;
-                        if (exp >= expNext) { lvl++; exp=0; expNext *= 1.5; }
-                        document.getElementById('lvl').innerText = lvl;
-                        document.getElementById('coins').innerText = coins;
-                        document.getElementById('exp-bar').style.width = (exp/expNext*100) + "%";
+                        enemies.splice(i,1); coins += 10; updateLobby();
                     }
                 }
             });
-
-            // Hit player
-            if (dist < 35) {
-                player.hp -= 0.5;
-                document.getElementById('hp-bar').style.width = (player.hp/player.maxHp*100) + "%";
-            }
+            if (dist < 40) player.hp -= 0.5;
         });
 
-        // LOSE CONDITION (Tuzatilgan joyi)
-        if (player.hp <= 0) {
-            isRunning = false; // Siklni to'xtatish
-            alert("O'YIN TUGADI! To'plangan tangalar: " + coins);
-            location.reload(); // Sahifani yangilash
-            return;
-        }
+        // HP Bar
+        ctx.fillStyle = 'red'; ctx.fillRect(player.x-25, player.y-40, 50, 6);
+        ctx.fillStyle = 'lime'; ctx.fillRect(player.x-25, player.y-40, player.hp/2, 6);
 
-        requestAnimationFrame(update);
+        if (player.hp <= 0) { isRunning = false; alert("O'yin tugadi! Tangalar yig'ildi."); location.reload(); }
+        requestAnimationFrame(loop);
     }
 </script>
 </body>
