@@ -3,55 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>Brawl Ultra: Crystal Hunter</title>
+    <title>Brawl Ultra: Evolution</title>
     <style>
-        :root { --p-color: #00d2ff; --e-color: #ff0055; --s-color: #ffaa00; --gold: #ffd700; --crystal: #ae00ff; }
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Arial Black', sans-serif; touch-action: none; }
-        canvas { display: none; background: #1e3d1a; }
+        :root { 
+            --gold: #ffd700; --crystal: #ae00ff; --exp: #00ff88;
+            --p-color: #00d2ff; --e-color: #ff4444; 
+        }
+        body { margin: 0; overflow: hidden; background: #0a0a0a; font-family: 'Segoe UI', Roboto, sans-serif; touch-action: none; }
+        canvas { display: none; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
         
-        /* LOBBY & UI */
-        #lobby, #maintenance { position: absolute; width: 100%; height: 100%; background: linear-gradient(45deg, #1a2a6c, #b21f1f); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
-        .stat-header { position: absolute; top: 10px; right: 20px; display: flex; gap: 15px; font-size: 18px; }
-        .currency { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid #fff; }
+        /* MODERN UI */
+        #lobby { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #1a2a6c, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
+        .stats-bar { position: absolute; top: 20px; right: 20px; display: flex; gap: 15px; }
+        .stat-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; }
         
-        .character-preview { width: 150px; height: 200px; background: var(--p-color); border-radius: 50px 50px 10px 10px; box-shadow: 0 0 30px var(--p-color); margin: 20px; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .char-box { width: 140px; height: 180px; background: linear-gradient(to bottom, var(--p-color), #0055ff); border-radius: 30px; box-shadow: 0 0 50px var(--p-color); margin: 30px; position: relative; animation: float 3s ease-in-out infinite; }
+        .char-box::after { content: 'LVL 1'; position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); font-size: 20px; color: var(--exp); }
         
-        .btn { padding: 15px 60px; font-size: 24px; border-radius: 15px; border: 4px solid #fff; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
-        .play-btn { background: #ffcc00; color: #000; box-shadow: 0 8px 0 #cc9900; }
-        .box-btn { background: #00d2ff; color: #fff; margin-top: 20px; font-size: 18px; box-shadow: 0 5px 0 #0099cc; }
-        .btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(-20px) rotate(-2deg); } }
+        
+        .btn { padding: 18px 80px; font-size: 28px; border-radius: 50px; border: none; cursor: pointer; text-transform: uppercase; font-weight: 900; transition: 0.2s; letter-spacing: 2px; }
+        .play-btn { background: linear-gradient(#ffcc00, #ff9900); color: #000; box-shadow: 0 10px 0 #cc7700; }
+        .play-btn:active { transform: translateY(8px); box-shadow: 0 2px 0 #cc7700; }
 
-        /* GAME UI */
-        #game-ui { position: absolute; top: 10px; left: 10px; display: none; z-index: 50; }
-        .joy-zone { position: absolute; bottom: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); }
-        .handle { position: absolute; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        /* IN-GAME UI */
+        #game-ui { position: absolute; top: 20px; left: 20px; display: none; z-index: 50; width: 250px; }
+        .progress-container { background: rgba(0,0,0,0.5); border-radius: 10px; height: 12px; margin: 5px 0; border: 1px solid #555; }
+        .bar { height: 100%; transition: 0.3s; border-radius: 10px; }
+        
+        .joy-zone { position: absolute; bottom: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: none; }
+        .handle { position: absolute; width: 55px; height: 55px; background: rgba(255,255,255,0.3); border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 2px solid #fff; }
     </style>
 </head>
 <body>
 
-    <!-- LOBBY -->
     <div id="lobby">
-        <div class="stat-header">
-            <div class="currency" style="color: var(--gold);">🪙 <span id="lobby-coins">0</span></div>
-            <div class="currency" style="color: var(--crystal);">💎 <span id="lobby-gems">0</span></div>
+        <div class="stats-bar">
+            <div class="stat-card" style="color: var(--gold);">🪙 <span id="l-coins">0</span></div>
+            <div class="stat-card" style="color: var(--crystal);">💎 <span id="l-gems">0</span></div>
         </div>
-        <h1 style="font-size: 50px; text-shadow: 4px 4px #000;">BRAWL ULTRA</h1>
-        <div class="character-preview"></div>
-        <button class="play-btn btn" onclick="startGame()">BRAWL!</button>
-        <button class="box-btn btn" onclick="openBox()">OPEN BOX (100 🪙)</button>
+        <h1 style="font-size: 60px; margin: 0; text-shadow: 0 0 20px var(--p-color);">BRAWL ULTRA</h1>
+        <div class="char-box" id="lobby-char"></div>
+        <button class="play-btn btn" onclick="startGame()">BATTLE</button>
     </div>
 
-    <!-- GAME UI -->
     <div id="game-ui">
-        <div class="currency" style="margin-bottom: 5px;">KILLS: <span id="kills">0</span></div>
-        <div id="hp-container" style="width: 200px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid #fff;">
-            <div id="hp-bar" style="width: 100%; height: 100%; background: #00ff88;"></div>
-        </div>
+        <div style="color: white; font-weight: bold;">LVL <span id="lvl-txt">1</span></div>
+        <div class="progress-container"><div id="exp-bar" class="bar" style="width: 0%; background: var(--exp);"></div></div>
+        <div class="progress-container"><div id="hp-bar" class="bar" style="width: 100%; background: #ff4444;"></div></div>
     </div>
 
-    <div class="joy-zone" id="move-joy" style="left: 40px; display: none;"><div class="handle"></div></div>
-    <div class="joy-zone" id="aim-joy" style="right: 40px; display: none;"><div class="handle"></div></div>
+    <div class="joy-zone" id="move-joy" style="left: 50px;"><div class="handle"></div></div>
+    <div class="joy-zone" id="aim-joy" style="right: 50px;"><div class="handle"></div></div>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -59,45 +62,36 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Global Stats
-    let coins = 0, gems = 0, kills = 0, frames = 0, isGameRunning = false;
-    const isMaintenance = false; // Razrabotchik rejimi
+    // Stats & Leveling
+    let coins = 0, gems = 0, exp = 0, lvl = 1, expNeeded = 100;
+    let frames = 0, isGameRunning = false;
 
-    let player = { x: 0, y: 0, size: 25, hp: 100, speed: 4 };
-    let enemies = [], bullets = [], drops = [], particles = [];
+    let player = { x: 0, y: 0, size: 28, hp: 100, maxHp: 100, speed: 5, damage: 1 };
+    let enemies = [], bullets = [], drops = [];
 
-    // --- JOYSTICK LOGIC (FIXED) ---
-    const joys = { move: { x: 0, y: 0, id: null }, aim: { x: 0, y: 0, id: null, active: false } };
+    const joys = { move: { x: 0, y: 0, id: null }, aim: { x: 0, y: 0, active: false } };
 
     function setupJoy(id, type) {
         const zone = document.getElementById(id);
         const handle = zone.querySelector('.handle');
-        const center = { x: zone.offsetLeft + 60, y: zone.offsetTop + 60 };
-
         const handleInput = (e) => {
             e.preventDefault();
             const t = e.targetTouches ? Array.from(e.targetTouches).find(tt => tt.target === zone || zone.contains(tt.target)) : e;
             if(!t) return;
-
-            let dx = t.clientX - (zone.offsetLeft + 60);
-            let dy = t.clientY - (zone.offsetTop + 60);
+            let dx = t.clientX - (zone.offsetLeft + 65), dy = t.clientY - (zone.offsetTop + 65);
             const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
             const angle = Math.atan2(dy, dx);
-
             joys[type].x = (Math.cos(angle) * dist) / 50;
             joys[type].y = (Math.sin(angle) * dist) / 50;
             handle.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
-            if(type === 'aim' && dist > 20) joys.aim.active = true;
+            if(type === 'aim' && dist > 15) joys.aim.active = true;
         };
-
-        const stop = () => { joys[type].x = 0; joys[type].y = 0; joys.aim.active = false; handle.style.transform = `translate(-50%, -50%)`; };
+        const reset = () => { joys[type].x = 0; joys[type].y = 0; joys.aim.active = false; handle.style.transform = `translate(-50%, -50%)`; };
         zone.addEventListener('touchstart', handleInput); zone.addEventListener('touchmove', handleInput);
-        zone.addEventListener('touchend', stop);
+        zone.addEventListener('touchend', reset);
     }
 
-    // --- GAME FUNCTIONS ---
     function startGame() {
-        if(isMaintenance) return alert("🛠 Texnik ishlar ketmoqda!");
         document.getElementById('lobby').style.display = 'none';
         document.querySelectorAll('.joy-zone, #game-ui').forEach(el => el.style.display = 'block');
         canvas.style.display = 'block';
@@ -107,80 +101,86 @@
         isGameRunning = true; update();
     }
 
-    function openBox() {
-        if(coins >= 100) {
-            coins -= 100;
-            const win = Math.floor(Math.random() * 10) + 1;
-            gems += win;
-            alert(`📦 BOX OCHILDI! Siz ${win} ta kristall 💎 yutdingiz!`);
-            updateLobbyUI();
-        } else alert("Mablag' yetarli emas! 🪙");
-    }
-
-    function updateLobbyUI() {
-        document.getElementById('lobby-coins').innerText = coins;
-        document.getElementById('lobby-gems').innerText = gems;
-    }
-
-    function createDrop(x, y) {
-        const type = Math.random() > 0.3 ? 'coin' : 'gem';
-        drops.push({ x, y, type, size: 10 });
+    function addExp(amount) {
+        exp += amount;
+        if(exp >= expNeeded) {
+            lvl++; exp = 0; expNeeded *= 1.5;
+            player.maxHp += 20; player.hp = player.maxHp;
+            player.damage += 0.5;
+            document.getElementById('lvl-txt').innerText = lvl;
+            alert("LEVEL UP! 💪 Kuchingiz ortdi!");
+        }
+        document.getElementById('exp-bar').style.width = (exp / expNeeded * 100) + "%";
     }
 
     function update() {
         if(!isGameRunning) return;
-        frames++; ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frames++; ctx.fillStyle = '#111811'; ctx.fillRect(0,0,canvas.width, canvas.height);
+        
+        // Grid Effect (Grafika uchun)
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
 
-        // Player Movement
-        player.x += joys.move.x * player.speed; player.y += joys.move.y * player.speed;
-
-        // Draw Player
-        ctx.fillStyle = '#00d2ff'; ctx.shadowBlur = 15; ctx.shadowColor = '#00d2ff';
-        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
+        // Player Move & Draw
+        player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x + joys.move.x * player.speed));
+        player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y + joys.move.y * player.speed));
+        
+        // Personajni chiroyli chizish
+        ctx.shadowBlur = 20; ctx.shadowColor = '#00d2ff';
+        ctx.fillStyle = '#00d2ff'; ctx.beginPath(); ctx.roundRect(player.x-20, player.y-25, 40, 50, 10); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(player.x-8, player.y-10, 4, 0, Math.PI*2); ctx.arc(player.x+8, player.y-10, 4, 0, Math.PI*2); ctx.fill();
         ctx.shadowBlur = 0;
 
         // Firing
-        if(joys.aim.active && frames % 12 === 0) {
-            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x * 12, vy: joys.aim.y * 12 });
+        if(joys.aim.active && frames % 10 === 0) {
+            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x*14, vy: joys.aim.y*14 });
         }
 
-        // Bullets
-        bullets.forEach((b, i) => {
+        // Bullets & Collision
+        bullets.forEach((b, bi) => {
             b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
-            if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(i, 1);
-        });
-
-        // Enemies
-        if(frames % 80 === 0) enemies.push({ x: Math.random()*canvas.width, y: -20, hp: 2 });
-        enemies.forEach((e, i) => {
-            let dx = player.x - e.x, dy = player.y - e.y, d = Math.sqrt(dx*dx+dy*dy);
-            e.x += (dx/d)*2; e.y += (dy/d)*2;
-            ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.arc(e.x, e.y, 20, 0, Math.PI*2); ctx.fill();
-
-            bullets.forEach((b, bi) => {
-                if(Math.sqrt((e.x-b.x)**2 + (e.y-b.y)**2) < 25) {
-                    e.hp--; bullets.splice(bi, 1);
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 7, 0, Math.PI*2); ctx.fill();
+            
+            enemies.forEach((e, ei) => {
+                let dist = Math.hypot(e.x - b.x, e.y - b.y);
+                if(dist < 30) {
+                    e.hp -= player.damage; bullets.splice(bi, 1);
                     if(e.hp <= 0) {
-                        kills++; createDrop(e.x, e.y); enemies.splice(i, 1);
-                        document.getElementById('kills').innerText = kills;
+                        enemies.splice(ei, 1); addExp(25); coins += 5;
+                        drops.push({x: e.x, y: e.y, type: Math.random()>0.8?'gem':'coin'});
                     }
                 }
             });
-            if(d < 40) { player.hp -= 0.5; document.getElementById('hp-bar').style.width = player.hp + "%"; }
         });
 
-        // Drops (Coins & Gems)
-        drops.forEach((d, i) => {
-            ctx.fillStyle = d.type === 'coin' ? '#ffd700' : '#ae00ff';
-            ctx.beginPath(); ctx.arc(d.x, d.y, 8, 0, Math.PI*2); ctx.fill();
-            if(Math.sqrt((player.x-d.x)**2 + (player.y-d.y)**2) < 40) {
-                if(d.type === 'coin') coins += 10; else gems += 1;
-                drops.splice(i, 1); updateLobbyUI();
+        // Enemies
+        if(frames % (Math.max(20, 100 - lvl*5)) === 0) {
+            let side = Math.random() > 0.5;
+            enemies.push({ x: side?Math.random()*canvas.width:0, y: side?0:Math.random()*canvas.height, hp: 2 + lvl });
+        }
+        enemies.forEach((e, i) => {
+            let angle = Math.atan2(player.y - e.y, player.x - e.x);
+            e.x += Math.cos(angle) * (1.5 + lvl*0.2); e.y += Math.sin(angle) * (1.5 + lvl*0.2);
+            ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.roundRect(e.x-20, e.y-20, 40, 40, 8); ctx.fill();
+            if(Math.hypot(player.x-e.x, player.y-e.y) < 40) {
+                player.hp -= 0.3;
+                document.getElementById('hp-bar').style.width = (player.hp/player.maxHp*100) + "%";
             }
         });
 
-        if(player.hp <= 0) location.reload();
+        // Drops
+        drops.forEach((d, i) => {
+            ctx.fillStyle = d.type==='coin'?'#ffd700':'#ae00ff';
+            ctx.beginPath(); ctx.arc(d.x, d.y, 10, 0, Math.PI*2); ctx.fill();
+            if(Math.hypot(player.x-d.x, player.y-d.y) < 40) {
+                if(d.type==='gem') gems++; else coins += 10;
+                drops.splice(i, 1);
+                document.getElementById('l-coins').innerText = coins;
+                document.getElementById('l-gems').innerText = gems;
+            }
+        });
+
+        if(player.hp <= 0) { alert("GAME OVER! LVL: " + lvl); location.reload(); }
         requestAnimationFrame(update);
     }
 </script>
