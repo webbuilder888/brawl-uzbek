@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <title>Brawl Stars Ultra 2026</title>
+    <style>
+        :root { --gold: #ffd700; --gem: #ae00ff; --blue: #3498db; --box-color: #3498db; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; -webkit-user-select: none; }
+        
+        /* LOBBY */
+        #lobby { 
+            position: absolute; width: 100%; height: 100%; 
+            background: radial-gradient(circle, #1a2a6c, #000);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+        
+        .top-bar { position: absolute; top: 15px; display: flex; gap: 15px; width: 90%; justify-content: flex-end; }
+        .res { background: rgba(0,0,0,0.8); padding: 10px 25px; border-radius: 25px; border: 2px solid #fff; color: white; font-size: 18px; }
 
+        /* PERSONAJ KO'RINISHI */
+        #char-display { 
+            width: 180px; height: 220px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 30px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 3px solid var(--blue);
+            box-shadow: 0 0 30px var(--blue);
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        #char-display img { width: 90%; height: 90%; object-fit: contain; }
+        #char-fallback { font-size: 60px; display: none; } /* Rasm bo'lmasa chiqadi */
+
+        .btn-row { display: flex; gap: 15px; margin-top: 10px; }
+        .btn { padding: 15px 35px; border-radius: 40px; border: none; cursor: pointer; font-weight: bold; font-size: 18px; text-transform: uppercase; box-shadow: 0 6px #000; transition: 0.1s; }
+        .play { background: #ffcc00; color: #000; font-size: 24px; padding: 15px 60px; }
+        .box { background: var(--box-color); color: #fff; }
+        .shop { background: #e74c3c; color: #fff; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px #000; }
+
+        /* WINDOWS */
+        .window { 
+            position: absolute; width: 70%; height: 60%; background: rgba(0,0,0,0.95); 
+            border: 4px solid #fff; border-radius: 25px; display: none; z-index: 110; color: white; padding: 20px; text-align: center;
+        }
+        
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="lobby">
+        <div class="top-bar">
+            <div class="res" style="color: var(--gold);">🪙 <span id="m-gold">0</span></div>
+            <div class="res" style="color: var(--gem);">💎 <span id="m-gem">0</span></div>
+        </div>
+
+        <div id="char-display">
+            <div id="char-fallback">👤</div>
+            <img id="p-img" src="" alt="Brawler" onerror="this.style.display='none'; document.getElementById('char-fallback').style.display='block';">
+        </div>
+        <h2 id="char-name" style="color: white; margin: 0 0 20px 0; text-shadow: 2px 2px #000;">LOADING...</h2>
+
+        <button class="btn play" onclick="startGame()">BATTLE</button>
+
+        <div class="btn-row">
+            <button class="btn shop" onclick="openWindow('shop-w')">SHOP</button>
+            <button class="btn box" onclick="openBox()">OPEN BOX (100 🪙)</button>
+            <button class="btn" style="background:#95a5a6;" onclick="openWindow('promo-w')">PROMO</button>
+        </div>
+    </div>
+
+    <!-- SHOP WINDOW -->
+    <div id="shop-w" class="window">
+        <h2>BRAWLER SHOP</h2>
+        <div style="display:flex; justify-content: space-around; margin-top:20px;">
+            <div onclick="buyBrawler('colt', 50)" style="cursor:pointer; background:#444; padding:15px; border-radius:15px;">
+                <p>COLT</p>
+                <p>💎 50</p>
+            </div>
+            <div onclick="buyBrawler('mortis', 150)" style="cursor:pointer; background:#444; padding:15px; border-radius:15px;">
+                <p>MORTIS</p>
+                <p>💎 150</p>
+            </div>
+        </div>
+        <br><br><button class="btn" onclick="closeWindows()">BACK</button>
+    </div>
+
+    <!-- PROMO WINDOW -->
+    <div id="promo-w" class="window">
+        <h2>PROMO CODE</h2>
+        <input type="text" id="promo-in" style="font-size:20px; padding:10px; border-radius:10px;">
+        <button class="btn play" style="padding:10px 20px; font-size:16px;" onclick="claimPromo()">OK</button>
+        <br><br><button class="btn" onclick="closeWindows()">BACK</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // DATA
+    let user = {
+        gold: parseInt(localStorage.getItem('g')) || 500,
+        gem: parseInt(localStorage.getItem('dm')) || 10,
+        unlocked: JSON.parse(localStorage.getItem('ul')) || ['shelly'],
+        current: localStorage.getItem('cur') || 'shelly'
+    };
+
+    const brawlers = {
+        shelly: { name: 'SHELLY', color: '#9b59b6', img: 'https://vignette.wikia.nocookie.net/brawlstars/images/e/e0/Shelly_Portrait.png' },
+        colt: { name: 'COLT', color: '#e67e22', img: 'https://vignette.wikia.nocookie.net/brawlstars/images/5/54/Colt_Portrait.png' },
+        mortis: { name: 'MORTIS', color: '#34495e', img: 'https://vignette.wikia.nocookie.net/brawlstars/images/e/eb/Mortis_Portrait.png' }
+    };
+
+    function save() {
+        localStorage.setItem('g', user.gold);
+        localStorage.setItem('dm', user.gem);
+        localStorage.setItem('ul', JSON.stringify(user.unlocked));
+        localStorage.setItem('cur', user.current);
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('m-gold').innerText = user.gold;
+        document.getElementById('m-gem').innerText = user.gem;
+        const b = brawlers[user.current];
+        document.getElementById('char-name').innerText = b.name;
+        const img = document.getElementById('p-img');
+        img.src = b.img;
+        img.style.display = 'block';
+        document.getElementById('char-fallback').style.display = 'none';
+        document.getElementById('char-display').style.borderColor = b.color;
+    }
+
+    // BOX TIZIMI
+    function openBox() {
+        if (user.gold >= 100) {
+            user.gold -= 100;
+            let prize = Math.floor(Math.random() * 15) + 5;
+            user.gem += prize;
+            alert("BOX OCHILDI! 💎 " + prize + " ta kristall!");
+            save();
+        } else {
+            alert("Tangalar yetarli emas!");
+        }
+    }
+
+    function buyBrawler(id, cost) {
+        if (user.unlocked.includes(id)) {
+            user.current = id;
+        } else if (user.gem >= cost) {
+            user.gem -= cost;
+            user.unlocked.push(id);
+            user.current = id;
+        }
+        save();
+    }
+
+    function openWindow(id) { document.getElementById(id).style.display = 'block'; }
+    function closeWindows() { document.querySelectorAll('.window').forEach(w => w.style.display = 'none'); }
+    
+    function claimPromo() {
+        if (document.getElementById('promo-in').value.toLowerCase() === 'brawl') {
+            user.gem += 100; alert("PROMO: +100 💎"); save();
+        }
+    }
+
+    // ENGINE
+    function startGame() {
+        document.getElementById('lobby').style.display = 'none';
+        canvas.style.display = 'block';
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        alert("Jang boshlanmoqda! (Joysticklar aktiv)");
+        // O'yin kodi davomi...
+    }
+
+    updateUI();
+</script>
+</body>
+</html>
