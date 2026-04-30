@@ -1,209 +1,235 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brawl Ultra Graphics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <title>Brawl Stars Ultra Pro</title>
     <style>
         :root {
-            --p-color: #00d2ff; --e-color: #ff0055; --s-color: #ffaa00;
-        }
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Ubuntu', sans-serif; touch-action: none; }
-        canvas { display: block; }
-
-        /* Neon UI */
-        #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; }
-        .stat-card {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 15px;
-            border-left: 5px solid var(--p-color);
-            box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        .bar { width: 200px; height: 14px; background: #1a1a1a; border-radius: 7px; margin-top: 8px; border: 1px solid #333; position: relative; overflow: hidden; }
-        #hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00d2ff); box-shadow: 0 0 10px #00ff88; transition: 0.3s; }
-        #super-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffaa00, #ff0000); box-shadow: 0 0 10px #ffaa00; transition: 0.3s; }
-        #kills { color: white; font-weight: 900; font-size: 18px; letter-spacing: 2px; }
-
-        /* Modern Joysticks */
-        .joy-zone {
-            position: absolute; bottom: 40px; width: 130px; height: 130px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            border: 2px solid rgba(255,255,255,0.1); border-radius: 50%;
-        }
-        #move-joy { left: 40px; }
-        #aim-joy { right: 40px; border-color: rgba(255, 170, 0, 0.2); }
-        .handle {
-            position: absolute; width: 55px; height: 55px;
-            background: rgba(255,255,255,0.2); border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.8);
-            box-shadow: 0 0 15px rgba(255,255,255,0.3);
-            left: 50%; top: 50%; transform: translate(-50%, -50%);
+            --primary: #00f2ff;
+            --secondary: #ff007b;
+            --accent: #ffcc00;
+            --lobby-bg: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
         }
 
-        #game-over {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95); padding: 40px; border-radius: 30px;
-            text-align: center; color: white; display: none; border: 2px solid var(--p-color);
-            box-shadow: 0 0 50px rgba(0,210,255,0.4); pointer-events: auto;
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial Black', sans-serif;
+            touch-action: none;
+        }
+
+        /* Landscape ogohlantirish */
+        @media screen and (orientation: portrait) {
+            #rotate-message { display: flex; }
+        }
+        #rotate-message {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: white; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; text-align: center;
+        }
+
+        /* LOBBY DIZAYNI */
+        #lobby {
+            position: absolute; width: 100%; height: 100%;
+            background: var(--lobby-bg);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; z-index: 100;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .character-stand {
+            position: relative; width: 300px; height: 400px;
+            display: flex; justify-content: center; align-items: flex-end;
+            margin-top: 50px;
+        }
+
+        /* Personaj "Shelly" uslubida */
+        .character {
+            width: 120px; height: 250px;
+            background: var(--primary);
+            border-radius: 60px 60px 20px 20px;
+            box-shadow: 0 0 50px var(--primary);
+            position: relative; animation: idle 2s ease-in-out infinite;
+        }
+
+        @keyframes idle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        .shadow {
+            position: absolute; bottom: -20px; width: 150px; height: 30px;
+            background: rgba(0,0,0,0.4); border-radius: 50%; filter: blur(10px);
+        }
+
+        .play-btn {
+            background: linear-gradient(#ffcc00, #ff9900);
+            border: 4px solid #fff; padding: 20px 80px;
+            border-radius: 20px; color: #000; font-size: 32px;
+            cursor: pointer; margin-bottom: 50px;
+            box-shadow: 0 10px 0 #cc7a00, 0 20px 30px rgba(0,0,0,0.5);
+            transition: 0.1s;
+        }
+        .play-btn:active { transform: translateY(10px); box-shadow: 0 0 0 #cc7a00; }
+
+        /* O'YIN MAYDONI */
+        canvas { display: none; background: #2d5a27; }
+
+        #ui {
+            position: absolute; top: 20px; left: 20px; display: none;
+            z-index: 50; color: white;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- Telefonni aylantirish haqida xabar -->
+    <div id="rotate-message">
+        <div style="font-size: 50px;">🔄</div>
+        <h2>Iltimos, ekranni yonboshiga (Landscape) aylantiring!</h2>
+    </div>
 
+    <!-- LOBBY -->
+    <div id="lobby">
+        <div style="color: white; font-size: 48px; margin-top: 30px; text-shadow: 4px 4px #000;">BRAWL ULTRA</div>
+        
+        <div class="character-stand">
+            <div class="shadow"></div>
+            <div class="character">
+                <div style="position:absolute; top:40px; left:25px; width:20px; height:20px; background:white; border-radius:50%;"></div>
+                <div style="position:absolute; top:40px; right:25px; width:20px; height:20px; background:white; border-radius:50%;"></div>
+            </div>
+        </div>
+
+        <button class="play-btn" onclick="startGame()">PLAY</button>
+    </div>
+
+    <!-- O'YIN INTERFEYSI -->
     <div id="ui">
-        <div class="stat-card">
-            <div id="kills">FRAGS: 0</div>
-            <div class="bar"><div id="hp-fill"></div></div>
-            <div class="bar"><div id="super-fill"></div></div>
+        <div style="background:rgba(0,0,0,0.6); padding:15px; border-radius:15px; border:2px solid var(--primary);">
+            <div id="frag-count">KILLS: 0</div>
+            <div style="width:200px; height:15px; background:#333; margin-top:10px; border-radius:10px; overflow:hidden;">
+                <div id="hp-bar" style="width:100%; height:100%; background: #00ff88; box-shadow: 0 0 15px #00ff88;"></div>
+            </div>
         </div>
     </div>
 
-    <div class="joy-zone" id="move-joy"><div class="handle"></div></div>
-    <div class="joy-zone" id="aim-joy"><div class="handle"></div></div>
-
-    <div id="game-over">
-        <h1 style="font-size: 48px; margin: 0; color: #ff0055;">WASTED</h1>
-        <p id="final" style="font-size: 20px; margin: 20px 0;"></p>
-        <button onclick="location.reload()" style="background: var(--p-color); border: none; padding: 15px 40px; color: white; font-weight: bold; border-radius: 10px; cursor: pointer;">REDEPLOY</button>
-    </div>
+    <canvas id="gameCanvas"></canvas>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const lobby = document.getElementById('lobby');
+    const ui = document.getElementById('ui');
 
-    let score = 0, isGameOver = false, superMode = false, superCharge = 0, frames = 0;
-    let player = { x: canvas.width/2, y: canvas.height/2, hp: 100, size: 22 };
-    let enemies = [], bullets = [], particles = [], trails = [];
+    let isGameRunning = false;
+    let score = 0;
+    let player = { x: 0, y: 0, size: 30, hp: 100 };
+    let enemies = [], bullets = [], particles = [];
 
-    // --- JOYSCRIPT LOGIC ---
-    const joys = { move: { x:0, y:0 }, aim: { x:0, y:0 }, firing: false };
-    function setupJoy(id, callback) {
-        const zone = document.getElementById(id);
-        const handle = zone.querySelector('.handle');
-        const update = (e) => {
-            e.preventDefault();
-            const t = e.touches ? e.touches[0] : e;
-            let dx = t.clientX - (zone.offsetLeft + 65);
-            let dy = t.clientY - (zone.offsetTop + 65);
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
-            const angle = Math.atan2(dy, dx);
-            dx = Math.cos(angle) * dist; dy = Math.sin(angle) * dist;
-            handle.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-            callback(dx/50, dy/50, dist > 20);
-        };
-        const reset = () => { handle.style.transform = `translate(-50%, -50%)`; callback(0, 0, false); };
-        zone.addEventListener('touchstart', update); zone.addEventListener('touchmove', update);
-        zone.addEventListener('touchend', reset);
-    }
-    setupJoy('move-joy', (x, y) => { joys.move.x = x; joys.move.y = y; });
-    setupJoy('aim-joy', (x, y, active) => { joys.aim.x = x; joys.aim.y = y; joys.firing = active; });
-
-    // --- EFFECTS ---
-    function spawnPart(x, y, color) {
-        for(let i=0; i<15; i++) particles.push({ x, y, vx:(Math.random()-0.5)*12, vy:(Math.random()-0.5)*12, life:1, c:color, s:Math.random()*4+2 });
-    }
-
-    // --- GAME LOOP ---
-    function draw() {
-        if(isGameOver) return;
-        frames++;
-        ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function startGame() {
+        lobby.style.display = 'none';
+        canvas.style.display = 'block';
+        ui.style.display = 'block';
         
-        // Grid Effect
-        ctx.strokeStyle = '#111'; ctx.lineWidth = 1;
-        for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
-        for(let i=0; i<canvas.height; i+=50) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+        
+        isGameRunning = true;
+        animate();
+    }
 
-        // Player Move & Draw
-        player.x += joys.move.x * 5; player.y += joys.move.y * 5;
-        // Bloom/Glow Player
-        ctx.shadowBlur = 25; ctx.shadowColor = superMode ? '#ffaa00' : '#00d2ff';
-        ctx.fillStyle = superMode ? '#ffaa00' : '#00d2ff';
+    // --- BOSHQRUV (Virtual Joystick) ---
+    let joyMove = { x: 0, y: 0, active: false };
+    window.addEventListener('pointerdown', (e) => { joyMove.active = true; });
+    window.addEventListener('pointermove', (e) => {
+        if(joyMove.active) {
+            player.x = e.clientX;
+            player.y = e.clientY;
+            // Otish avtomatik yoki bosganda (Brawl uslubi)
+            if(frames % 10 === 0) fireBullet(e.clientX, e.clientY);
+        }
+    });
+    window.addEventListener('pointerup', () => { joyMove.active = false; });
+
+    function fireBullet(tx, ty) {
+        let angle = Math.atan2(ty - player.y, tx - player.x);
+        bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 15, vy: Math.sin(angle) * 15 });
+    }
+
+    let frames = 0;
+    function animate() {
+        if(!isGameRunning) return;
+        frames++;
+        
+        // Grafika: Arena Rendering
+        ctx.fillStyle = '#1e3d1a'; // To'q yashil arena
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Panjara foni (3D effekt uchun)
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        for(let i=0; i<canvas.width; i+=60) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
+        for(let i=0; i<canvas.height; i+=60) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+
+        // Player Drawing (Glow Effect)
+        ctx.shadowBlur = 30; ctx.shadowColor = '#00f2ff';
+        ctx.fillStyle = '#00f2ff';
         ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI*2); ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Firing Logic
-        if(joys.firing && frames % (superMode ? 4 : 8) === 0) {
-            let angle = Math.atan2(joys.aim.y, joys.aim.x);
-            let count = superMode ? 3 : 1;
-            for(let i=0; i<count; i++) {
-                let s = (Math.random()-0.5)*0.3;
-                bullets.push({ x:player.x, y:player.y, vx:Math.cos(angle+s)*15, vy:Math.sin(angle+s)*15, sm:superMode });
-            }
+        // Dushmanlar (Enemies)
+        if(frames % 50 === 0) {
+            enemies.push({ x: Math.random() * canvas.width, y: -50, hp: 2 });
         }
 
-        // Bullets & Trails
-        bullets.forEach((b, i) => {
-            b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = b.sm ? '#ffaa00' : '#fff';
-            ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
-            ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2); ctx.fill();
-            if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(i, 1);
+        enemies.forEach((en, index) => {
+            let dx = player.x - en.x;
+            let dy = player.y - en.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            en.x += (dx/dist) * 2.5; en.y += (dy/dist) * 2.5;
+
+            ctx.fillStyle = '#ff007b';
+            ctx.beginPath(); ctx.arc(en.x, en.y, 25, 0, Math.PI*2); ctx.fill();
+            
+            // Player bilan to'qnashuv
+            if(dist < 55) {
+                player.hp -= 0.2;
+                document.getElementById('hp-bar').style.width = player.hp + "%";
+            }
         });
 
-        // Enemies
-        if(frames % 60 === 0) {
-            let x = Math.random() < 0.5 ? -50 : canvas.width + 50;
-            let y = Math.random() * canvas.height;
-            enemies.push({ x, y, hp: 2 + (score/10), s: 20 });
-        }
-
-        enemies.forEach((e, i) => {
-            let dx = player.x - e.x, dy = player.y - e.y, d = Math.sqrt(dx*dx+dy*dy);
-            e.x += (dx/d)*2; e.y += (dy/d)*2;
+        // O'qlar (Bullets)
+        bullets.forEach((b, index) => {
+            b.x += b.vx; b.y += b.vy;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
             
-            // Draw Enemy with Glow
-            ctx.shadowBlur = 15; ctx.shadowColor = '#ff0055';
-            ctx.fillStyle = '#ff0055';
-            ctx.beginPath(); ctx.arc(e.x, e.y, e.s, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // Collision Player
-            if(d < player.size + e.s) {
-                player.hp -= 0.5;
-                document.getElementById('hp-fill').style.width = player.hp + "%";
-                if(player.hp <= 0) { isGameOver = true; document.getElementById('game-over').style.display='block'; document.getElementById('final').innerText = `SCORE: ${score}`; }
-            }
-
-            // Collision Bullet
-            bullets.forEach((b, bi) => {
-                let hitD = Math.sqrt((e.x-b.x)**2 + (e.y-b.y)**2);
-                if(hitD < e.s) {
-                    e.hp -= b.sm ? 2 : 1; bullets.splice(bi, 1);
-                    if(e.hp <= 0) {
-                        spawnPart(e.x, e.y, '#ff0055');
-                        enemies.splice(i, 1); score++;
-                        superCharge = Math.min(100, superCharge + 5);
-                        document.getElementById('kills').innerText = `FRAGS: ${score}`;
-                        document.getElementById('super-fill').style.width = superCharge + "%";
-                    }
+            // Dushmanga tegishi
+            enemies.forEach((en, ei) => {
+                let d = Math.sqrt((en.x-b.x)**2 + (en.y-b.y)**2);
+                if(d < 30) {
+                    enemies.splice(ei, 1);
+                    bullets.splice(index, 1);
+                    score++;
+                    document.getElementById('frag-count').innerText = "KILLS: " + score;
                 }
             });
         });
 
-        // Super Mode Logic
-        if(superCharge >= 100 && !superMode) {
-             superMode = true;
-             setTimeout(() => { superMode = false; superCharge = 0; document.getElementById('super-fill').style.width = "0%"; }, 6000);
-        }
-
-        // Particles
-        particles.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.life -= 0.03;
-            ctx.fillStyle = p.c; ctx.globalAlpha = p.life;
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-            if(p.life <= 0) particles.splice(i, 1);
-        });
-        ctx.globalAlpha = 1;
-
-        requestAnimationFrame(draw);
+        requestAnimationFrame(animate);
     }
-    draw();
 </script>
 </body>
 </html>
