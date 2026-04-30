@@ -5,25 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
     <title>Brawl Ultra: Shelly Edition</title>
     <style>
-        :root { --gold: #ffd700; --crystal: #ae00ff; --p-color: #9b59b6; }
+        :root { --gold: #ffd700; --crystal: #ae00ff; }
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; -webkit-user-select: none; }
-        canvas { display: none; background: #224422; }
+        canvas { display: none; }
 
         /* LOBBY */
-        #lobby { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #1a2a6c, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
+        #lobby { 
+            position: absolute; width: 100%; height: 100%; 
+            background: url('https://wallpaperaccess.com/full/1385418.jpg') center/cover;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; 
+        }
+        #lobby::before { content: ''; position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
+        
         .stats-top { position: absolute; top: 20px; display: flex; gap: 20px; }
-        .currency { background: rgba(0,0,0,0.7); padding: 10px 25px; border-radius: 30px; border: 2px solid #fff; font-size: 20px; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .currency { background: rgba(0,0,0,0.8); padding: 10px 25px; border-radius: 30px; border: 2px solid #fff; font-size: 20px; }
         
-        /* SHELLY LOOK-ALIKE */
-        .shelly-preview { width: 120px; height: 160px; background: #9b59b6; border-radius: 40px 40px 10px 10px; position: relative; margin-bottom: 20px; box-shadow: 0 0 50px #9b59b6; animation: idle 2s infinite ease-in-out; }
-        .shelly-preview::before { content: ''; position: absolute; top: -10px; width: 130px; height: 50px; background: #4a235a; border-radius: 50px 50px 0 0; left: -5px; } /* Sochlari */
+        .shelly-png { width: 180px; filter: drop-shadow(0 0 20px #9b59b6); animation: idle 2s infinite ease-in-out; }
+        @keyframes idle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         
-        @keyframes idle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05) translateY(-10px); } }
-        
-        .btn-group { display: flex; gap: 20px; margin-top: 10px; }
+        .btn-group { display: flex; gap: 20px; margin-top: 20px; }
         .btn { padding: 15px 50px; font-size: 25px; border-radius: 40px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.1s; }
         .play-btn { background: #ffcc00; color: #000; box-shadow: 0 8px #cc9900; }
-        .box-btn { background: #3498db; color: #fff; box-shadow: 0 8px #2980b9; font-size: 18px; }
+        .box-btn { background: #3498db; color: #fff; box-shadow: 0 8px #2980b9; }
         .btn:active { transform: translateY(4px); box-shadow: 0 4px gray; }
 
         /* JOYSTICKS */
@@ -38,8 +41,7 @@
             <div class="currency" style="color: var(--gold);">🪙 <span id="l-coins">0</span></div>
             <div class="currency" style="color: var(--crystal);">💎 <span id="l-gems">0</span></div>
         </div>
-        <h1 style="font-size: 40px; text-shadow: 3px 3px #000;">BRAWL ULTRA</h1>
-        <div class="shelly-preview"></div>
+        <img src="https://vignette.wikia.nocookie.net/brawlstars/images/e/e0/Shelly_Portrait.png/revision/latest?cb=20181212104052" class="shelly-png" alt="Shelly">
         <div class="btn-group">
             <button class="play-btn btn" onclick="startGame()">BATTLE</button>
             <button class="box-btn btn" onclick="openBox()">BOX (100 🪙)</button>
@@ -55,12 +57,17 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // MA'LUMOTLARNI SAQLASH
+    // Tasvirlarni yuklash
+    const shellyImg = new Image();
+    shellyImg.src = 'https://vignette.wikia.nocookie.net/brawlstars/images/e/e0/Shelly_Portrait.png/revision/latest?cb=20181212104052';
+    
+    const bgImg = new Image();
+    bgImg.src = 'https://i.pinimg.com/originals/14/8a/a6/148aa61730d0694119323f95f4ba4025.png'; // Grass Background
+
     let coins = localStorage.getItem('coins') ? parseInt(localStorage.getItem('coins')) : 0;
     let gems = localStorage.getItem('gems') ? parseInt(localStorage.getItem('gems')) : 0;
     let isRunning = false, frames = 0;
 
-    // LOBBY YANGILASH
     function updateLobby() {
         document.getElementById('l-coins').innerText = coins;
         document.getElementById('l-gems').innerText = gems;
@@ -69,22 +76,18 @@
     }
     updateLobby();
 
-    // QUTI OCHISH
     function openBox() {
         if (coins >= 100) {
             coins -= 100;
-            let win = Math.floor(Math.random() * 15) + 5;
+            let win = Math.floor(Math.random() * 10) + 5;
             gems += win;
-            alert("BOX OCHILDI! 💎 " + win + " ta kristall yutdingiz!");
+            alert("BOX: 💎 " + win + " kristall!");
             updateLobby();
-        } else {
-            alert("Tangalar yetarli emas!");
-        }
+        } else alert("Tangalar kam!");
     }
 
     let player = { x: 0, y: 0, hp: 100, speed: 6 };
-    let enemies = [], bullets = [], drops = [];
-    const joys = { move: { x: 0, y: 0, active: false }, aim: { x: 0, y: 0, active: false } };
+    let enemies = [], bullets = [], joys = { move: { x: 0, y: 0, active: false }, aim: { x: 0, y: 0, active: false } };
 
     function setupJoy(id, type) {
         const el = document.getElementById(id);
@@ -120,48 +123,56 @@
     function loop() {
         if (!isRunning) return;
         frames++;
-        ctx.fillStyle = '#2d5a27'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        
+        // Background chizish
+        if (bgImg.complete) {
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = '#224422'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        }
 
-        // Player (Shelly Style)
+        // Shelly (Player) chizish
         player.x += joys.move.x * player.speed;
         player.y += joys.move.y * player.speed;
-        ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.roundRect(player.x-20, player.y-25, 40, 50, 10); ctx.fill();
-        ctx.fillStyle = '#4a235a'; ctx.fillRect(player.x-22, player.y-28, 44, 15); // Shelly sochi
+        
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        // Otish yo'nalishiga qarab burish
+        if (joys.aim.active) ctx.rotate(Math.atan2(joys.aim.y, joys.aim.x) + Math.PI/2);
+        ctx.drawImage(shellyImg, -30, -40, 60, 80);
+        ctx.restore();
 
-        // Shooting
+        // Shooting logic (o'zgarmadi)
         if (joys.aim.active && frames % 10 === 0) {
-            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x*14, vy: joys.aim.y*14 });
+            bullets.push({ x: player.x, y: player.y, vx: joys.aim.x*15, vy: joys.aim.y*15 });
         }
 
         bullets.forEach((b, i) => {
             b.x += b.vx; b.y += b.vy;
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 7, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
             if(b.x<0 || b.x>canvas.width || b.y<0 || b.y>canvas.height) bullets.splice(i,1);
         });
 
         // Enemies
-        if (frames % 70 === 0) enemies.push({ x: Math.random()*canvas.width, y: -30, hp: 3 });
+        if (frames % 60 === 0) enemies.push({ x: Math.random()*canvas.width, y: -40, hp: 3 });
         enemies.forEach((e, i) => {
-            let dx = player.x-e.x, dy = player.y-e.y, dist = Math.sqrt(dx*dx+dy*dy);
-            e.x += (dx/dist)*2.5; e.y += (dy/dist)*2.5;
-            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.roundRect(e.x-20, e.y-20, 40, 40, 5); ctx.fill();
-
+            let dx = player.x-e.x, dy = player.y-e.y, d = Math.sqrt(dx*dx+dy*dy);
+            e.x += (dx/d)*2.5; e.y += (dy/d)*2.5;
+            ctx.fillStyle = 'red'; ctx.beginPath(); ctx.roundRect(e.x-20, e.y-20, 40, 40, 5); ctx.fill();
             bullets.forEach((b, bi) => {
-                if (Math.hypot(b.x-e.x, b.y-e.y) < 30) {
+                if (Math.hypot(b.x-e.x, b.y-e.y) < 35) {
                     e.hp--; bullets.splice(bi,1);
-                    if (e.hp <= 0) {
-                        enemies.splice(i,1); coins += 10; updateLobby();
-                    }
+                    if (e.hp <= 0) { enemies.splice(i,1); coins += 10; updateLobby(); }
                 }
             });
-            if (dist < 40) player.hp -= 0.5;
+            if (d < 45) player.hp -= 0.6;
         });
 
-        // HP Bar
-        ctx.fillStyle = 'red'; ctx.fillRect(player.x-25, player.y-40, 50, 6);
-        ctx.fillStyle = 'lime'; ctx.fillRect(player.x-25, player.y-40, player.hp/2, 6);
+        // UI bars
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(player.x-25, player.y-55, 50, 8);
+        ctx.fillStyle = '#00ff00'; ctx.fillRect(player.x-25, player.y-55, (player.hp/100)*50, 8);
 
-        if (player.hp <= 0) { isRunning = false; alert("O'yin tugadi! Tangalar yig'ildi."); location.reload(); }
+        if (player.hp <= 0) { isRunning = false; alert("GAME OVER!"); location.reload(); }
         requestAnimationFrame(loop);
     }
 </script>
