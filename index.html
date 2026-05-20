@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brawl Stars Box Opener</title>
-    <!-- Shriftdan foydalanish uchun Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <title>Brawl Stars Premium Box Opener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
     
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Lilita One', cursive;
             user-select: none;
         }
 
         body {
-            /* Brawl Stars-ga xos binafsha-ko'k rangli chiroyli gradient fon */
-            background: radial-gradient(circle, #2c1654 0%, #12072b 100%);
+            /* Brawl Stars original fon rasmi (Starr Park / Hypercharge background) */
+            background: url('https://images.alphacoders.com/134/1341053.jpeg') no-repeat center center fixed;
+            background-size: cover;
             color: white;
             min-height: 100vh;
             display: flex;
@@ -27,173 +27,213 @@
             overflow-x: hidden;
         }
 
-        /* Lobby Sarlavhasi */
+        /* Qorong'iroq effekt berish uchun ustki qatlam */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: -1;
+        }
+
         header {
+            margin: 25px 0 10px 0;
             text-align: center;
-            margin: 20px 0;
+            z-index: 1;
         }
 
         header h1 {
-            font-family: 'Lilita One', cursive;
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: #ffcc00;
-            text-shadow: 4px 4px 0px #cc0000, -2px -2px 0px #000;
-            letter-spacing: 2px;
-            transform: skewX(-5deg);
+            text-shadow: 4px 4px 0px #b30000, -2px -2px 0px #000, 4px -2px 0px #000, -2px 4px 0px #000;
+            letter-spacing: 3px;
+            transform: skewX(-7deg);
         }
 
-        /* Asosiy Lobby Konteyneri */
         .lobby-container {
-            width: 90%;
-            max-width: 1200px;
+            width: 95%;
+            max-width: 1300px;
             display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 300px; /* Quti ochish qismi va brawlerlar orasidagi joy */
-            margin-top: 20px;
+            grid-template-columns: 1fr 350px;
+            gap: 40px;
+            z-index: 1;
+            padding: 20px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
             .lobby-container {
                 grid-template-columns: 1fr;
-                gap: 40px;
             }
         }
 
-        /* CHAP TOMON: Brawlerlar ro'yxati */
+        /* --- CHAP TOMON: BRAWLERLAR SEKSIYASI --- */
         .brawlers-section h2 {
-            font-family: 'Lilita One', cursive;
-            color: #00e5ff;
-            margin-bottom: 15px;
+            font-size: 1.8rem;
+            color: #00ffff;
             text-shadow: 2px 2px 0px #000;
+            margin-bottom: 15px;
+            transform: skewX(-5deg);
         }
 
         .brawlers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
-            border: 3px solid #3d2375;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            background: rgba(5, 5, 20, 0.75);
+            padding: 25px;
+            border-radius: 20px;
+            border: 4px solid #ffcc00;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            max-height: 70vh;
+            overflow-y: auto;
         }
 
-        /* Personaj kartochkalari */
+        /* Brawler Kartochkalari */
         .brawler-card {
-            background: linear-gradient(135deg, #504099, #31256c);
-            border: 3px solid #7952b3;
-            border-radius: 12px;
-            padding: 10px;
+            background: linear-gradient(180deg, #4b4b4b 0%, #202020 100%);
+            border: 3px solid #111;
+            border-radius: 14px;
+            padding: 5px;
             text-align: center;
             position: relative;
-            transition: transform 0.2s, filter 0.3s;
-            cursor: pointer;
-            filter: grayscale(100%) brightness(70%); /* Hali ochilmaganlar uchun kulrang effekt */
+            box-shadow: 0 5px 0 #000;
+            transition: transform 0.15s;
+            overflow: hidden;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Qulflangan holatda (To'liq qora-oq rasm) */
+        .brawler-card .brawler-img {
+            width: 100%;
+            height: 110px;
+            object-fit: contain;
+            filter: grayscale(100%) brightness(40%);
+            transition: filter 0.3s, transform 0.3s;
+        }
+
+        /* Ochilgandagi effektlar va fon ranglari */
+        .brawler-card.unlocked .brawler-img {
+            filter: grayscale(0%) brightness(100%);
         }
 
         .brawler-card.unlocked {
-            filter: grayscale(0%) brightness(100%);
-            border-color: #ffcc00;
-            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
-            animation: unlock-pop 0.3s ease-out;
+            animation: popOpen 0.4s ease-out;
         }
 
-        .brawler-card:hover {
-            transform: scale(1.05) rotate(-2deg);
-        }
-
-        .brawler-avatar {
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-            display: block;
-        }
+        /* Rarity bo'yicha original fonlar */
+        .brawler-card.rare.unlocked { background: linear-gradient(180deg, #3cc41c 0%, #1e630e 100%); border-color: #5eff3b; }
+        .brawler-card.super-rare.unlocked { background: linear-gradient(180deg, #3b7fff 0%, #153c99 100%); border-color: #6ea0ff; }
+        .brawler-card.epic.unlocked { background: linear-gradient(180deg, #d633ff 0%, #6b1185 100%); border-color: #f199ff; }
+        .brawler-card.mythic.unlocked { background: linear-gradient(180deg, #ff334b 0%, #991020 100%); border-color: #ff8593; }
+        .brawler-card.legendary.unlocked { background: linear-gradient(180deg, #ffb133 0%, #b36b00 100%); border-color: #ffe085; }
 
         .brawler-name {
-            font-size: 0.85rem;
-            font-weight: bold;
-            text-transform: uppercase;
+            font-size: 1.1rem;
             color: #fff;
-            text-shadow: 1px 1px 2px #000;
+            text-shadow: 2px 2px 0px #000;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            background: rgba(0,0,0,0.4);
+            width: 100%;
+            border-radius: 0 0 8px 8px;
+            padding: 2px 0;
         }
 
-        /* Kamyoblik ranglari (Rarity) */
-        .rare { border-color: #3cc41c !important; }
-        .super-rare { border-color: #3b7fff !important; }
-        .epic { border-color: #d633ff !important; }
-        .mythic { border-color: #ff334b !important; }
-        .legendary { border-color: #ffb133 !important; }
-
-        /* O'NG TOMON: Quti va Resurslar */
+        /* --- O'NG TOMON: SHOP / LOBBY INTERFEYSI --- */
         .box-section {
+            background: rgba(5, 5, 20, 0.85);
+            padding: 30px;
+            border-radius: 25px;
+            border: 4px solid #00ffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 30px;
-            border-radius: 20px;
-            border: 4px solid #1a0d36;
             height: fit-content;
         }
 
+        /* Resurslar paneli */
         .resources {
             display: flex;
             gap: 15px;
-            margin-bottom: 25px;
-            font-weight: bold;
-            font-size: 1.1rem;
+            margin-bottom: 35px;
+            width: 100%;
+            justify-content: center;
         }
 
         .res-item {
-            background: #111;
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 2px solid #444;
+            background: #0d0d1a;
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 3px solid #333;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            font-size: 1.3rem;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
         }
 
-        .gems { color: #00ff66; border-color: #00aa44; }
-        .coins { color: #ffcc00; border-color: #cc9900; }
+        .coins { color: #ffeb3b; border-color: #ff9800; }
+        .gems { color: #00e676; border-color: #00c853; }
 
-        /* Mega Box tugmasi va vizuali */
+        .res-item img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        /* Mega Box Tugmasi va Animatsiyasi */
         .mega-box-btn {
             background: none;
             border: none;
             cursor: pointer;
             outline: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             position: relative;
+        }
+
+        .mega-box-img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.7));
+            animation: boxFloat 3s ease-in-out infinite;
             transition: transform 0.1s;
         }
 
-        .mega-box-btn:active {
-            transform: scale(0.9);
-        }
-
-        .box-graphic {
-            font-size: 6rem;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.6));
-            animation: float 3s ease-in-out infinite;
+        .mega-box-btn:active .mega-box-img {
+            transform: scale(0.85);
         }
 
         .btn-text {
-            margin-top: 15px;
-            background: linear-gradient(to bottom, #ffcc00, #ff9900);
-            color: #331a00;
-            font-family: 'Lilita One', cursive;
-            font-size: 1.4rem;
-            padding: 10px 25px;
-            border-radius: 25px;
-            border: 3px solid #fff;
-            box-shadow: 0 5px 0 #b36b00, 0 8px 15px rgba(0,0,0,0.4);
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.6);
+            margin-top: 20px;
+            background: linear-gradient(180deg, #ffeb3b 0%, #ff9800 100%);
+            color: #3e2723;
+            font-size: 1.6rem;
+            padding: 12px 35px;
+            border-radius: 40px;
+            border: 4px solid #fff;
+            box-shadow: 0 6px 0 #b36b00, 0 10px 20px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            transform: skewX(-5deg);
         }
 
-        /* 💥 MODAL VA ANIMATSIYA (Yangi personaj chiqqandagi ekran) */
+        .btn-text:active {
+            transform: skewX(-5deg) translateY(4px);
+            box-shadow: 0 2px 0 #b36b00, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* --- REWARD MODAL (Yangi personaj tushgandagi ekran) --- */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: radial-gradient(circle, rgba(142,36,170,0.95) 0%, rgba(33,150,243,0.95) 100%);
             display: none;
             justify-content: center;
             align-items: center;
@@ -202,56 +242,61 @@
 
         .modal-content {
             text-align: center;
-            animation: brawler-reveal 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: revealBrawler 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .modal-avatar {
-            font-size: 8rem;
-            display: block;
+        .modal-img {
+            width: 280px;
+            height: 280px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 35px rgba(255,255,255,1));
             margin-bottom: 20px;
-            filter: drop-shadow(0 0 30px rgba(255,255,255,0.8));
         }
 
         .modal-rarity {
-            font-family: 'Lilita One', cursive;
-            font-size: 1.5rem;
+            font-size: 2rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 0 #000;
             margin-bottom: 10px;
         }
 
         .modal-name {
-            font-family: 'Lilita One', cursive;
-            font-size: 4rem;
+            font-size: 4.5rem;
             color: #fff;
-            text-shadow: 0 5px 10px rgba(0,0,0,0.8);
-            margin-bottom: 30px;
+            text-shadow: 5px 5px 0px #000;
+            margin-bottom: 35px;
+            transform: skewX(-6deg);
         }
 
-        .close-modal-btn {
+        .close-btn {
             background: #fff;
             color: #111;
-            font-weight: bold;
-            padding: 12px 40px;
-            border-radius: 30px;
-            border: none;
+            font-size: 1.3rem;
+            padding: 12px 50px;
+            border-radius: 40px;
+            border: 4px solid #111;
             cursor: pointer;
-            font-size: 1.1rem;
-            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+            box-shadow: 0 5px 0 #999;
         }
 
-        /* Animatsiyalar */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
+        .close-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #999;
         }
 
-        @keyframes brawler-reveal {
-            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+        /* --- ANIMATSIYALAR --- */
+        @keyframes boxFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+
+        @keyframes revealBrawler {
+            0% { transform: scale(0) rotate(-30deg); opacity: 0; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        @keyframes unlock-pop {
+        @keyframes popOpen {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
@@ -260,81 +305,80 @@
 </head>
 <body>
 
+    <div class="overlay"></div>
+
     <header>
         <h1>BRAWL LOBBY</h1>
     </header>
 
     <div class="lobby-container">
         
-        <!-- CHAP UPRAVLENIYA: Personajlar Galereyasi -->
         <div class="brawlers-section">
-            <h2>Brawlerlar (<span id="unlocked-count">0</span>/10)</h2>
+            <h2>BRAWLERLAR (<span id="unlocked-count">0</span>/8)</h2>
             <div class="brawlers-grid" id="brawlers-grid">
-                <!-- Personajlar JavaScript orqali joylanadi -->
-            </div>
+                </div>
         </div>
 
-        <!-- O'NG UPRAVLENIYA: Quti ochish paneli -->
         <div class="box-section">
             <div class="resources">
-                <div class="res-item coins">🪙 <span id="coin-count">0</span></div>
-                <div class="res-item gems">💎 <span id="gem-count">80</span></div>
+                <div class="res-item coins">
+                    <img src="https://cdn.wikiisland.org/images/b/b5/Coin.png" alt="Coin">
+                    <span id="coin-count">0</span>
+                </div>
+                <div class="res-item gems">
+                    <img src="https://cdn.wikiisland.org/images/2/23/Gem.png" alt="Gem">
+                    <span id="gem-count">100</span>
+                </div>
             </div>
 
             <button class="mega-box-btn" onclick="openMegaBox()">
-                <div class="box-graphic">📦</div>
-                <div class="btn-text">MEGA BOX (20 💎)</div>
+                <img class="mega-box-img" src="https://cdn.wikiisland.org/images/c/c2/Mega_Box.png" alt="Mega Box">
+                <div class="btn-text">OPEN BOX (20)</div>
             </button>
         </div>
 
     </div>
 
-    <!-- Yangi personaj tushgandagi popup oyna -->
     <div class="modal" id="reward-modal">
         <div class="modal-content">
-            <div class="modal-avatar" id="modal-avatar">🌵</div>
-            <div class="modal-rarity" id="modal-rarity" style="color: #ffb133;">LEGENDARY</div>
+            <img class="modal-img" id="modal-img" src="" alt="Brawler">
+            <div class="modal-rarity" id="modal-rarity">LEGENDARY</div>
             <div class="modal-name" id="modal-name">SPIKE</div>
-            <button class="close-modal-btn" onclick="closeModal()">LOBBYGA QAYTISH</button>
+            <button class="close-btn" onclick="closeModal()">TAP TO CLOSE</button>
         </div>
     </div>
 
     <script>
-        // Haqiqiy Brawl Stars personajlari ma'lumotlar bazasi (Emoji va Rarity bilan)
+        // Haqiqiy Brawl Stars personajlarining rasmlari (PNG formatida)
         const brawlersData = [
-            { id: 'shelly', name: 'Shelly', emoji: '🔫', rarity: 'rare', color: '#3cc41c' },
-            { id: 'colt', name: 'Colt', emoji: '🤠', rarity: 'rare', color: '#3cc41c' },
-            { id: 'el_primo', name: 'El Primo', emoji: '💪', rarity: 'super-rare', color: '#3b7fff' },
-            { id: 'poco', name: 'Poco', emoji: '💀', rarity: 'super-rare', color: '#3b7fff' },
-            { id: 'piper', name: 'Piper', emoji: '☂️', rarity: 'epic', color: '#d633ff' },
-            { id: 'edgar', name: 'Edgar', emoji: '🧣', rarity: 'epic', color: '#d633ff' },
-            { id: 'mortis', name: 'Mortis', emoji: '🧛', rarity: 'mythic', color: '#ff334b' },
-            { id: 'taras', name: 'Tara', emoji: '🃏', rarity: 'mythic', color: '#ff334b' },
-            { id: 'spike', name: 'Spike', emoji: '🌵', rarity: 'legendary', color: '#ffb133' },
-            { id: 'crow', name: 'Crow', emoji: '🐦', rarity: 'legendary', color: '#ffb133' }
+            { id: 'shelly', name: 'Shelly', img: 'https://cdn.wikiisland.org/images/3/3d/Shelly_Portrait.png', rarity: 'rare', color: '#5eff3b' },
+            { id: 'colt', name: 'Colt', img: 'https://cdn.wikiisland.org/images/5/54/Colt_Portrait.png', rarity: 'rare', color: '#5eff3b' },
+            { id: 'el_primo', name: 'El Primo', img: 'https://cdn.wikiisland.org/images/a/ab/El_Primo_Portrait.png', rarity: 'super-rare', color: '#6ea0ff' },
+            { id: 'poco', name: 'Poco', img: 'https://cdn.wikiisland.org/images/8/87/Poco_Portrait.png', rarity: 'super-rare', color: '#6ea0ff' },
+            { id: 'edgar', name: 'Edgar', img: 'https://cdn.wikiisland.org/images/9/91/Edgar_Portrait.png', rarity: 'epic', color: '#f199ff' },
+            { id: 'mortis', name: 'Mortis', img: 'https://cdn.wikiisland.org/images/2/24/Mortis_Portrait.png', rarity: 'mythic', color: '#ff8593' },
+            { id: 'spike', name: 'Spike', img: 'https://cdn.wikiisland.org/images/1/19/Spike_Portrait.png', rarity: 'legendary', color: '#ffe085' },
+            { id: 'crow', name: 'Crow', img: 'https://cdn.wikiisland.org/images/3/36/Crow_Portrait.png', rarity: 'legendary', color: '#ffe085' }
         ];
 
-        // O'yin ichki holati (State)
         let userGems = 100;
         let userCoins = 0;
         let unlockedBrawlers = new Set();
 
-        // Elementlarni chaqirib olish
         const grid = document.getElementById('brawlers-grid');
         const gemDisplay = document.getElementById('gem-count');
         const coinDisplay = document.getElementById('coin-count');
         const countDisplay = document.getElementById('unlocked-count');
         const modal = document.getElementById('reward-modal');
 
-        // 1. Lobbyda personajlar kartochkalarini yaratish
         function initLobby() {
             grid.innerHTML = '';
             brawlersData.forEach(brawler => {
                 const card = document.createElement('div');
-                card.className = `brawler-card ${brawler.rarity}`;
+                card.className = `brawler-card`;
                 card.id = `card-${brawler.id}`;
                 card.innerHTML = `
-                    <span class="brawler-avatar">${brawler.emoji}</span>
+                    <img class="brawler-img" src="${brawler.img}" alt="${brawler.name}">
                     <span class="brawler-name">${brawler.name}</span>
                 `;
                 grid.appendChild(card);
@@ -342,67 +386,53 @@
             updateUI();
         }
 
-        // 2. Resurslar va hisoblagichlarni yangilash
         function updateUI() {
             gemDisplay.textContent = userGems;
             coinDisplay.textContent = userCoins;
             countDisplay.textContent = unlockedBrawlers.size;
 
-            // Ochilgan brawlerlarni rangli qilish
             unlockedBrawlers.forEach(id => {
                 const card = document.getElementById(`card-${id}`);
                 if (card && !card.classList.contains('unlocked')) {
-                    card.classList.add('unlocked');
+                    const data = brawlersData.find(b => b.id === id);
+                    card.classList.add('unlocked', data.rarity);
                 }
             });
         }
 
-        // 3. Mega Box ochish funksiyasi
         function openMegaBox() {
             if (userGems < 20) {
-                alert("Gems yetarli emas! Sizga sovg'a sifatida 50 ta berildi.");
-                userGems += 50;
+                alert("Gems yetarli emas! Sizga bonus 60 ta Gem berildi!");
+                userGems += 60;
                 updateUI();
                 return;
             }
 
-            // Narxni yechish
             userGems -= 20;
-            
-            // Qutidan har doim tanga tushadi
-            const coinsWon = Math.floor(Math.random() * 150) + 50; // 50-200 tanga
-            userCoins += coinsWon;
+            userCoins += Math.floor(Math.random() * 180) + 70; // 70-250 tanga
 
-            // Personaj tushish imkoniyati (Chance: 45%)
-            if (Math.random() < 0.45) {
-                // Hali ochilmagan brawlerlarni saralash
+            // 50% imkoniyat bilan yangi brawler tushadi
+            if (Math.random() < 0.50) {
                 const lockedBrawlers = brawlersData.filter(b => !unlockedBrawlers.has(b.id));
                 
                 if (lockedBrawlers.length > 0) {
-                    // Tasodifiy brawler tanlash
                     const luckyBrawler = lockedBrawlers[Math.floor(Math.random() * lockedBrawlers.length)];
                     unlockedBrawlers.add(luckyBrawler.id);
                     
-                    // Ekrandagi modalda ko'rsatish
-                    showRewardModal(luckyBrawler);
-                } else {
-                    // Agar hamma personaj ochilgan bo'lsa bonu tanga beriladi
-                    userCoins += 300;
-                    alert(`Hamma personajlarni ochgansiz! Bonus: +300 Tanga!`);
+                    // Animatsiya biroz chiroyli ko'rinishi uchun 200ms kechikish bilan ko'rsatamiz
+                    setTimeout(() => {
+                        showRewardModal(luckyBrawler);
+                    }, 200);
                 }
-            } else {
-                // Agar personaj chiqmasa shunchaki tanga haqida xabar berish
-                alert(`Qutidan ${coinsWon} ta tanga chiqdi! Personaj chiqmadi, omadni yana sinab ko'ring.`);
             }
 
             updateUI();
         }
 
-        // 4. Yangi personaj chiqqandagi animatsiyali ekran
         function showRewardModal(brawler) {
-            document.getElementById('modal-avatar').textContent = brawler.emoji;
+            document.getElementById('modal-img').src = brawler.img;
             const rarityElement = document.getElementById('modal-rarity');
-            rarityElement.textContent = brawler.rarity.replace('-', ' ');
+            rarityElement.textContent = brawler.rarity;
             rarityElement.style.color = brawler.color;
             document.getElementById('modal-name').textContent = brawler.name;
             
@@ -413,7 +443,6 @@
             modal.style.display = 'none';
         }
 
-        // Sayt yuklanganda ishga tushirish
         initLobby();
     </script>
 </body>
